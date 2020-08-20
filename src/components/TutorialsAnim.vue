@@ -1,66 +1,62 @@
 <template>
   <div class="cards-container">
-    <transition @enter="enter" :css="false">
-      <div v-show="isVisible" class="box">
-        <div
-          class="pres-card"
-          v-for="(tutorial, idx) in tutorialsCards"
-          :key="tutorial.id"
-          :style="cardStyle(idx)"
-          @mouseenter="showAuthorDescription(tutorial.id)"
-          @mouseleave="hideAuthorDescription"
+    <div class="box">
+      <div
+        class="pres-card"
+        :id="thumbnailElId(idx)"
+        v-for="(tutorial, idx) in tutorialsCards"
+        :key="tutorial.id"
+        :style="cardStyle(idx)"
+        @mouseenter="showAuthorDescription(tutorial.id)"
+        @mouseleave="hideAuthorDescription"
+      >
+        <img
+          v-if="tutorial.thumbnailUrl"
+          @load="thumbnailLoaded"
+          :class="[
+            focusedTutorialId === tutorial.id ? 'hovered' : '',
+            'tut-thumbnail',
+          ]"
+          :src="tutorial.thumbnailUrl"
+          :title="tutorial.title"
+        />
+        <span
+          v-if="tutorial.authorDescription"
+          :class="[
+            focusedTutorialId === tutorial.id ? 'visible' : '',
+            'tut-description',
+          ]"
+          >{{ tutorial.authorDescription }}</span
         >
-          <img
-            v-if="tutorial.thumbnailUrl"
-            :class="[
-              focusedTutorialId === tutorial.id ? 'hovered' : '',
-              'tut-thumbnail',
-            ]"
-            :src="tutorial.thumbnailUrl"
-            :title="tutorial.title"
-          />
-          <span
-            v-if="tutorial.authorDescription"
-            :class="[
-              focusedTutorialId === tutorial.id ? 'visible' : '',
-              'tut-description',
-            ]"
-            >{{ tutorial.authorDescription }}</span
-          >
-        </div>
-        <div class="center" :style="centerElementStyle">
-          HELLO THERE, HOW ARE YOU MY DEAR?
-        </div>
       </div>
-    </transition>
+      <div class="center" :style="centerElementStyle">
+        HELLO THERE, HOW ARE YOU MY DEAR?
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import { gsap } from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
-
 import { Tutorial } from "@/store/types";
 
+import { gsap } from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+//import ScrollToPlugin from "gsap/ScrollToPlugin";
+
 gsap.registerPlugin(ScrollTrigger);
-let timeline: gsap.core.Timeline;
 
 export default Vue.extend({
   created() {
     this.$store.dispatch("fetchThumbnails");
   },
-  props: {
-    isVisible: {
-      type: Boolean,
-      required: true,
-    },
-  },
   data() {
     return {
       tutorialsCards: this.$store.state.tutorials as Tutorial[],
-      // How far the presentation cards will rotate
-      rotationY: 45,
+      // Keep count of the loaded images until all are loaded
+      loadedImagesCtr: 0,
+      // How far the presentation cards will rotate (the whole .box container)
+      rotationY: 315,
       // CounterClockwise rotation for the center element (so it stays put instead of rotating)
       centerCounterRot: 0,
 
@@ -76,42 +72,70 @@ export default Vue.extend({
     },
   },
   methods: {
-    enter(el: HTMLElement, done: () => void) {
-      done();
-      setTimeout(() => {
-        const rotateY = this.rotationY;
-        const setCounterRot = (rot: number) => {
-          this.centerCounterRot = -rot;
-        };
+    // When a thumbnail image is loaded, increment the loadedImagesCtr
+    thumbnailLoaded() {
+      this.loadedImagesCtr++;
 
-        if (!timeline) {
-          timeline = gsap.timeline({
-            defaults: {
-              ease: "linear",
-              duration: 5,
-              scrollTrigger: {
-                markers: true,
+      if (
+        this.tutorialsCards &&
+        this.tutorialsCards.length === this.loadedImagesCtr
+      ) {
+        this.createGsapAnimation();
+      }
+    },
+    // Create the rotation animation of the tutorial cards
+    // It is guaranteed that the thumbnails' images have loaded at this point
+    createGsapAnimation() {
+      const rotateY = this.rotationY * this.tutorialsCards.length;
 
-                start: "top top",
-                //end: "+=100%",
-                trigger: ".pres-card",
-                pin: true,
-                scrub: true,
-              },
-            },
-          });
-        }
+      const setCounterRot = (rot: number) => {
+        this.centerCounterRot = -rot;
+      };
 
-        timeline.to(el, {
-          rotateY,
-          repeat: -1,
-          onUpdate() {
-            setCounterRot(this.ratio * rotateY);
+      // animate .box (rotate it)
+      const boxContainer = this.$el.firstElementChild;
+
+      const animationVars: gsap.TweenVars = {
+        rotateY,
+        yPercent: -95,
+        ease: "linear",
+        onUpdate() {
+          const currRatio = (this as gsap.TweenVars).ratio;
+          setCounterRot(currRatio * rotateY);
+        },
+      };
+
+      // The scroll trigger parameter
+      const scrollTrigger: gsap.plugins.ScrollTriggerInstanceVars = {
+        markers: true,
+
+        start: "top top",
+        //end: "+=100%",
+        trigger: boxContainer as Element,
+        // pin the topmost container
+        pin: this.$el,
+        pinSpacing: false,
+        scrub: 1,
+        snap: {
+          snapTo: currRatio => {
+            // Snap
+            const totalThumbnails = this.tutorialsCards.length;
+            return Math.round(currRatio * totalThumbnails) / totalThumbnails;
           },
-        });
-      }, 1000);
-      //.play(0)
-      // done();
+          delay: 0,
+          duration: { min: 0.2, max: 0.35 },
+        },
+      };
+
+      gsap.to(boxContainer, {
+        ...animationVars,
+        scrollTrigger,
+      });
+    },
+
+    // Get the id of a thumbnail element given it's index
+    thumbnailElId(idx: number) {
+      return `thumbnail_${idx}`;
     },
 
     cardStyle(idx: number) {
@@ -134,10 +158,23 @@ export default Vue.extend({
 <style scoped>
 /** The top container => center the animation .box container */
 .cards-container {
+  /* height: auto; */
+
   display: flex;
   justify-content: center;
 
   user-select: none;
+}
+
+.box {
+  position: relative;
+  /* margin: auto; */
+
+  transform-style: preserve-3d;
+  transform: perspective(300vh) translateZ(-50vw);
+  transform-origin: 0 0 0;
+
+  /* height: auto; */
 }
 
 /** Stylize the rotating thumnail images */
@@ -167,7 +204,7 @@ img.tut-thumbnail:nth-child(odd).hovered {
 span.tut-description {
   position: absolute;
   top: 20%;
-  left: -30%;
+  left: -65%;
   width: 95%;
 
   font-size: 1.5rem;
@@ -187,24 +224,11 @@ span.tut-description.visible {
 }
 
 .pres-card {
-  position: absolute;
+  position: relative;
   width: 35vw;
   height: auto;
 
   transform-origin: 0 0;
-  transform: rotateY(calc(var(--idx) * 45deg)) translateZ(35vw)
-    translateY(calc(var(--idx) * 35vw));
-}
-
-.box {
-  position: relative;
-  /* margin: auto; */
-
-  transform-style: preserve-3d;
-  transform: perspective(300vh) translateX(50%);
-  transform-origin: 0 0 0;
-
-  height: 0;
-  width: 0;
+  transform: rotateY(calc(var(--idx) * 45deg)) translateZ(35vw);
 }
 </style>
