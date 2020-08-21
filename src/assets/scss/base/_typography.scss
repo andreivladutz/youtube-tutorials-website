@@ -1,13 +1,3 @@
-@font-face {
-  font-family: "Gloria Hallelujah";
-  src: url("fonts/GloriaHallelujah.woff2") format("woff2"),
-    url("fonts/GloriaHallelujah.woff") format("woff"),
-    url("fonts/GloriaHallelujah.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 html {
   @include font-size(5, mobile, true, true);
   @if (get-font-size(5, desktop) != get-font-size(5, mobile)) {

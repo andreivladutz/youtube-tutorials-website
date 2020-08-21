@@ -1,6 +1,13 @@
 <template>
   <div class="home">
     <TutorialsAnim />
+    <div
+      :style="{
+      backgroundColor: 'red',
+      width: '100vw',
+      height: '100vh'
+    }"
+    >CONTENT AFTER</div>
   </div>
 </template>
 
