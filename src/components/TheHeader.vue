@@ -5,27 +5,28 @@
         <div class="brand header-brand">
           <h1 class="m-0">
             <a href="#">
-              <img class="header-logo-image" src="@/assets/images/logo.png" alt="Logo" />
+              <img
+                class="header-logo-image"
+                src="@/assets/images/logo.png"
+                alt="Logo"
+              />
             </a>
           </h1>
         </div>
       </div>
     </div>
+
+    <TheThemeToggle />
   </header>
 </template>
 
 <script lang="ts">
-  import Vue from "vue";
-  export default Vue.extend({});
+import Vue from "vue";
+import TheThemeToggle from "@/components/TheThemeToggle.vue";
+
+export default Vue.extend({
+  components: {
+    TheThemeToggle,
+  },
+});
 </script>
-
-<style scoped>
-  .site-header {
-    user-select: none;
-    -moz-user-select: none;
-  }
-
-  .header-logo-image {
-    height: 3.5rem;
-  }
-</style>
