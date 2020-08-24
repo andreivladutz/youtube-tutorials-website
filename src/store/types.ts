@@ -40,3 +40,21 @@ export interface ThumbnailResp {
   width: number;
   height: number;
 }
+
+// Footer Social Media icons
+export interface SocialMedia {
+  screenReader: string;
+  linkTo: string;
+  // Path to the SVG
+  iconPath: string;
+}
+
+// Products -> courses and such
+export interface Product {
+  // Link to external link
+  linkTo: string;
+  // Photo url
+  linkPhoto: string;
+  title: string;
+  description: string;
+}

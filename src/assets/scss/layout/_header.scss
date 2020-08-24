@@ -80,10 +80,10 @@
     right: -150px;
     width: 1440px;
     height: 324px;
-    background-image: url("../images/header-illustration-light.svg");
+    background-image: url("../images/header/header-illustration-light.svg");
 
     .lights-off & {
-      background-image: url("../images/header-illustration-dark.svg");
+      background-image: url("../images/header/header-illustration-dark.svg");
     }
   }
 }

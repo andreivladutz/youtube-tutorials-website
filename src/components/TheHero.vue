@@ -12,7 +12,7 @@
             <a class="button button-primary" href="#">Buy it now</a>
           </div>
         </div>
-        <div class="hero-media">
+        <div id="parallax-scene" class="hero-media">
           <!-- <ToggableImage
             groupClass="header-illustration"
             imgClass="header-illustration-image"
@@ -20,21 +20,46 @@
             lightFile="header-illustration-light.svg"
             darkFile="header-illustration-dark.svg"
           /> -->
-          <ToggableImage
-            groupClass="hero-media-illustration"
-            imgClass="hero-media-illustration-image"
-            imgAlt="Hero media illustration"
-            lightFile="hero-media-illustration-light.svg"
-            darkFile="hero-media-illustration-dark.svg"
-          />
 
-          <ToggableImage
-            groupClass="hero-media-container"
-            imgClass="hero-media-image"
-            imgAlt="Hero media"
-            lightFile="hero-media-light.svg"
-            darkFile="hero-media-dark.svg"
-          />
+          <div>
+            <div class="hero-media-container">
+              <div class="hero-media-image"></div>
+            </div>
+            <!-- <ToggableImage
+              groupClass="hero-media-container"
+              imgClass="hero-media-image"
+              imgAlt="Hero media"
+              lightFile="hero-media-light.svg"
+              darkFile="hero-media-dark.svg"
+            /> -->
+          </div>
+          <div class="parallax-hero-layer" data-depth="0.2">
+            <ToggableImage
+              groupClass="hero-media-illustration"
+              imgClass="hero-media-illustration-image"
+              imgAlt="Hero media illustration"
+              lightFile="hero/hero-media-illustration-light.svg"
+              darkFile="hero/hero-media-illustration-dark.svg"
+            />
+          </div>
+          <div class="parallax-hero-layer" data-depth="0.5">
+            <ToggableImage
+              groupClass="hero-media-illustration"
+              imgClass="hero-media-illustration-image"
+              imgAlt="Hero media illustration"
+              lightFile="hero/hero-dark-mid.svg"
+              darkFile="hero/hero-dark-mid.svg"
+            />
+          </div>
+          <div class="parallax-hero-layer" data-depth="0.8">
+            <ToggableImage
+              groupClass="hero-media-illustration"
+              imgClass="hero-media-illustration-image"
+              imgAlt="Hero media illustration top"
+              lightFile="hero/hero-light-top.svg"
+              darkFile="hero/hero-dark-top.svg"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -45,9 +70,29 @@
 import Vue from "vue";
 import ToggableImage from "@/components/ToggableImage.vue";
 
+// eslint-disable-next-line
+// @ts-ignore
+import Parallax from "parallax-js/src/parallax";
+
 export default Vue.extend({
   components: {
     ToggableImage,
   },
+  mounted() {
+    new Parallax(document.getElementById("parallax-scene"), null);
+  },
 });
 </script>
+
+<style>
+div.hero-media-container > div.hero-media-image {
+  visibility: hidden;
+  width: 538px;
+  height: 380px;
+}
+.parallax-hero-layer {
+  max-width: 136%;
+  width: 733px;
+  height: 749px;
+}
+</style>

@@ -198,7 +198,7 @@ img.tut-thumbnail.hovered {
   opacity: 1;
 
   /* Blur out the thumbnail a little so the thumbnail text doesn't interfere with the description */
-  filter: blur(2px);
+  filter: blur(6px);
 }
 
 img.tut-thumbnail:nth-child(even).hovered {
