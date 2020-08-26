@@ -38,7 +38,11 @@
     bottom: 18.8%;
     -webkit-transform: translateX(-50%) translateY(30%);
     transform: translateX(-50%) translateY(30%);
-    background-image: url("../images/pricing-illustration.svg");
+    // background-image: url("../images/contact/pricing-illustration-light.svg");
+
+    // .lights-off & {
+    //   background-image: url("../images/contact/pricing-illustration-dark.svg");
+    // }
   }
 }
 

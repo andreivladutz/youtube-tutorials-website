@@ -1,12 +1,10 @@
 <template>
-  <section class="pricing section">
+  <section id="the-contact" class="pricing cta section">
     <div class="container-sm">
       <div class="pricing-inner section-inner">
         <div class="contact-header text-center">
           <h2 class="section-title mt-0">About Me &amp; Contact</h2>
           <p class="section-paragraph mb-0">
-            I am a 3d artist, film maker and teacher.
-            I specialise in Blender and produce 3d graphics and animations as well as instructional videos. I am based in Ipswich, UK.
             I would love to hear from you so use the contact sheet and get in touch.
             Or you can comment on my videos and get in touch through any of the links in the footer.
           </p>

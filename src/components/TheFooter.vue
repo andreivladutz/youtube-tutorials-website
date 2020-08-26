@@ -4,11 +4,7 @@
       <div class="site-footer-inner">
         <div class="brand footer-brand">
           <a href="#">
-            <img
-              class="header-logo-image"
-              src="@/assets/images/logo.png"
-              alt="Logo"
-            />
+            <img class="header-logo-image" src="@/assets/images/logo.png" alt="Logo" />
           </a>
         </div>
         <ul class="footer-links list-reset">
@@ -20,43 +16,37 @@
           <li v-for="icon in socialMediaIcons" :key="icon.screenReader">
             <a :href="icon.linkTo" target="_blank">
               <span class="screen-reader-text">{{ icon.screenReader }}</span>
-              <img
-                :src="path(icon.iconPath)"
-                :title="icon.screenReader"
-                :alt="icon.screenReader"
-              />
+              <img :src="path(icon.iconPath)" :title="icon.screenReader" :alt="icon.screenReader" />
             </a>
           </li>
         </ul>
-        <div class="footer-copyright">
-          Copyright &copy; 2020 Gabbitt Media, All Rights Reserved
-        </div>
+        <div class="footer-copyright">Copyright &copy; 2020 Gabbitt Media, All Rights Reserved</div>
       </div>
     </div>
   </footer>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { SocialMedia } from "@/store/types";
+  import Vue from "vue";
+  import { SocialMedia } from "@/store/types";
 
-export default Vue.extend({
-  computed: {
-    socialMediaIcons(): SocialMedia[] {
-      return this.$store.state.socialMedia;
+  export default Vue.extend({
+    computed: {
+      socialMediaIcons(): SocialMedia[] {
+        return this.$store.state.socialMedia;
+      }
     },
-  },
-  methods: {
-    path(filename: string): string {
-      return require(`@/assets/images/social-media/${filename}.svg`);
-    },
-  },
-});
+    methods: {
+      path(filename: string): string {
+        return require(`@/assets/images/social-media/${filename}.svg`);
+      }
+    }
+  });
 </script>
 
 <style>
-ul.footer-social-links.list-reset img {
-  width: 1.5rem;
-  height: 1.5rem;
-}
+  ul.footer-social-links.list-reset img {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
 </style>
