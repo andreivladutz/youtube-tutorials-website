@@ -1,19 +1,25 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+import firebaseModule from "./firebaseModule";
+
 import {
   Tutorial,
   YouTubePlaylistQueryResp,
   PlaylistResp,
   ThumbnailResp,
   Product,
+  AppStoreState,
 } from "./types";
 import socialMedia from "./socialMedia";
 import CST from "@/CST";
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+export default new Vuex.Store<AppStoreState>({
+  modules: {
+    firebase: firebaseModule,
+  },
   state: {
     tutorials: [
       {
@@ -132,6 +138,9 @@ export default new Vuex.Store({
         }
       });
 
+      // First, get the api key from the database
+      await dispatch("firebase/getApiKey");
+
       await Promise.all([
         dispatch("fetchPlaylistsVideosData", {
           ids: playlistIds,
@@ -150,7 +159,7 @@ export default new Vuex.Store({
      * @param getPlaylists if the ids belong to playlists or they belong to videos
      */
     async fetchPlaylistsVideosData(
-      { commit },
+      { commit, state },
       { ids, isPlaylists = false }: { ids: string[]; isPlaylists?: boolean }
     ) {
       let endpoint: (ids: string[], key: string, pageTok: string) => string;
@@ -166,9 +175,11 @@ export default new Vuex.Store({
       // While there are next pages keep fetching them
       let nextPageToken = "";
 
+      const apiKey = state.firebase ? state.firebase.apiKey : "";
+
       do {
         playlistResponse = await (
-          await fetch(endpoint(ids, CST.API_KEY, nextPageToken))
+          await fetch(endpoint(ids, apiKey, nextPageToken))
         ).json();
 
         nextPageToken = playlistResponse.nextPageToken;
@@ -176,5 +187,4 @@ export default new Vuex.Store({
       } while (playlistResponse.nextPageToken);
     },
   },
-  modules: {},
 });

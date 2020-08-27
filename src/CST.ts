@@ -14,8 +14,6 @@ function ENDPOINT_URL(
 }
 
 export default {
-  API_KEY: "AIzaSyCxfSVqp5OJg-g7wt4hHs2B-RBX12b5YIg",
-
   VIDEO_ENDPOINT(videosIds: string[], apiKey: string, pageToken?: string) {
     return ENDPOINT_URL("videos", videosIds, apiKey, pageToken);
   },
@@ -28,4 +26,18 @@ export default {
   PLAYLIST_ENDPOINT(playlistIds: string[], apiKey: string, pageToken?: string) {
     return ENDPOINT_URL("playlists", playlistIds, apiKey, pageToken);
   },
+};
+
+export const FIREBASE_CFG = {
+  apiKey: "AIzaSyA7RxrhmPCoqfQNtQNx3dir9Abw9U97Fw4",
+  authDomain: "gabbit-media.firebaseapp.com",
+  databaseURL: "https://gabbit-media.firebaseio.com",
+  projectId: "gabbit-media",
+  storageBucket: "gabbit-media.appspot.com",
+  messagingSenderId: "686138924877",
+  appId: "1:686138924877:web:ffcb83c3c186311788e104",
+};
+
+export const REALTIME_DB = {
+  KEY_PATH: "ytApiKey",
 };

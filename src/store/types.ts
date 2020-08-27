@@ -1,3 +1,18 @@
+// STORE MODULES:
+export interface FirebaseModuleState {
+  apiKey: string;
+
+  isAdmin: boolean;
+}
+
+export interface AppStoreState {
+  tutorials: Tutorial[];
+  products: Product[];
+  socialMedia: SocialMedia[];
+
+  firebase?: FirebaseModuleState;
+}
+
 export interface Tutorial {
   id: string;
   isPlaylist?: boolean;
@@ -57,4 +72,43 @@ export interface Product {
   linkPhoto: string;
   title: string;
   description: string;
+}
+
+// The form types used  for rendering the custom form component. Can be used for the admin or contact form
+type FormType = "text" | "email" | "password" | "message";
+export interface FormField {
+  label: string;
+  type: FormType;
+
+  // In case of message i.e. textarea fields
+  maxLength?: number;
+}
+
+export interface CustomFormParam {
+  formTitle: string;
+  buttonText: string;
+
+  // The fields of the form in order
+  fields: FormField[];
+}
+
+export interface FormWrapperParam extends CustomFormParam {
+  title: string;
+  paragraphText: string;
+}
+
+// The $data property resulted on CustomForm component after parsing the config object
+export interface CustomFormData {
+  // Simple input
+  text?: string;
+  password?: string;
+  email?: {
+    value: string;
+    valid: boolean;
+  };
+  // The textarea
+  message?: {
+    text: string;
+    maxLength: number;
+  };
 }
