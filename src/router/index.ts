@@ -19,6 +19,20 @@ const routes: Array<RouteConfig> = [
     component: () =>
       import(/* webpackChunkName: "admin" */ "../views/Admin.vue"),
   },
+  {
+    path: "/admin/edit",
+    name: "AdminEdit",
+    // route level code-splitting
+    // this generates a separate chunk (admin.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () =>
+      import(/* webpackChunkName: "adminEdit" */ "../views/AdminEdit.vue"),
+  },
+  {
+    path: "*",
+    component: () =>
+      import(/* webpackChunkName: "notFound" */ "../views/404.vue"),
+  },
 ];
 
 const router = new VueRouter({

@@ -15,7 +15,11 @@
                     <span class="pricing-table-price-amount h1">{{config.formTitle}}</span>
                   </div>
                 </div>
-                <CustomForm :config="config" @submitted="$emit('submitted', $event)" />
+                <CustomForm
+                  :errors="errors"
+                  :config="config"
+                  @submitted="$emit('submitted', $event)"
+                />
               </div>
             </div>
           </div>
@@ -35,6 +39,10 @@
       config: {
         type: Object as PropType<FormWrapperParam>,
         required: true
+      },
+      // Display errors to the user (Just passed along to the custom form)
+      errors: {
+        type: Array as PropType<string[]>
       }
     },
     components: {

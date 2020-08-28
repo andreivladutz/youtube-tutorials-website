@@ -1,5 +1,6 @@
 <template>
   <main class="home">
+    <EditNavbar @sign-out="signOutAndRedirect" />
     <TheHero />
     <TheFeatures />
 
@@ -17,17 +18,28 @@
 
 <script lang="ts">
   import Vue from "vue";
+  import EditNavbar from "@/components/admin/EditNavbar.vue";
   import TheHero from "@/components/TheHero.vue";
   import TheFeatures from "@/components/TheFeatures.vue";
   import TutorialsAnim from "@/components/TutorialsAnim.vue";
   import TheContact from "@/components/TheContact.vue";
+  import { mapActions } from "vuex";
 
   export default Vue.extend({
     components: {
       TutorialsAnim,
       TheHero,
       TheFeatures,
-      TheContact
+      TheContact,
+      EditNavbar
+    },
+    methods: {
+      ...mapActions("firebase", ["signOut"]),
+      async signOutAndRedirect() {
+        await this.signOut();
+
+        this.$router.push("/");
+      }
     }
   });
 </script>

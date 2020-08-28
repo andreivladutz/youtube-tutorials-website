@@ -11,7 +11,6 @@
         @mouseleave="hideAuthorDescription"
       >
         <img
-          v-if="tutorial.thumbnailUrl"
           @load="thumbnailLoaded"
           :class="[
             focusedTutorialId === tutorial.id ? 'hovered' : '',
@@ -35,7 +34,8 @@
 
 <script lang="ts">
   import Vue from "vue";
-  import { Tutorial } from "@/store/types";
+  import { mapState } from "vuex";
+  import { Tutorial, AppStoreState } from "@/store/types";
 
   import { gsap } from "gsap";
   import ScrollTrigger from "gsap/ScrollTrigger";
@@ -49,7 +49,6 @@
     },
     data() {
       return {
-        tutorialsCards: this.$store.state.tutorials as Tutorial[],
         // Keep count of the loaded images until all are loaded
         loadedImagesCtr: 0,
         // How far the presentation cards will rotate (the whole .box container)
@@ -62,6 +61,9 @@
       };
     },
     computed: {
+      ...mapState({
+        tutorialsCards: state => (state as AppStoreState).tutorials as Tutorial[]
+      }),
       centerElementStyle(): { [K: string]: string } {
         return {
           transform: `rotateY(${this.centerCounterRot}deg)`
@@ -168,7 +170,7 @@
     /* margin: auto; */
 
     transform-style: preserve-3d;
-    transform: translateZ(-50vw);
+    transform: rotateY(2deg) translateZ(-50vw);
     transform-origin: 0 0 0;
 
     padding-bottom: 35vw;

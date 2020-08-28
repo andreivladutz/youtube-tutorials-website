@@ -11,6 +11,8 @@ import { FirebaseModuleState, AppStoreState } from "./types";
 firebase.initializeApp(FIREBASE_CFG);
 const db = firebase.database();
 
+let waitingForAuthStateChange = false;
+
 export default {
   namespaced: true,
   state: {
@@ -28,27 +30,43 @@ export default {
       commit("registerApiKey", apiKey);
     },
 
+    async signOut() {
+      return firebase.auth().signOut();
+    },
+
+    // Before logging in, check if the user is already logged in
+    async checkSignedInStatus({ state, commit }) {
+      return new Promise(resolve => {
+        // the listener is already registered
+        // Make sure we don't register the listener twice
+        if (waitingForAuthStateChange) {
+          return resolve(state.isAdmin);
+        }
+
+        firebase.auth().onAuthStateChanged(user => {
+          // If the user is not null, he has logged in
+          commit("adminAuthStateChange", user !== null);
+          resolve(state.isAdmin);
+        });
+
+        waitingForAuthStateChange = true;
+      });
+    },
+
     // Login with the firebase methods. HAS TO BE WRAPPED IN A TRY CATCH BLOCK
     async loginAdmin(
-      { commit },
+      _options,
       { email, pass }: { email: string; pass: string }
     ) {
-      // try {
-      await firebase.auth().signInWithEmailAndPassword(email, pass);
-      // } catch (err) {
-      //   console.log(err.code);
-      //   console.log(err.message);
-      // }
-
-      commit("adminAuth");
+      return firebase.auth().signInWithEmailAndPassword(email, pass);
     },
   },
   mutations: {
     registerApiKey(state, apiKey) {
       state.apiKey = apiKey;
     },
-    adminAuth(state) {
-      state.isAdmin = true;
+    adminAuthStateChange(state, newState: boolean) {
+      state.isAdmin = newState;
     },
   },
 } as Module<FirebaseModuleState, AppStoreState>;
