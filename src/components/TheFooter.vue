@@ -16,7 +16,13 @@
           <li v-for="icon in socialMediaIcons" :key="icon.screenReader">
             <a :href="icon.linkTo" target="_blank">
               <span class="screen-reader-text">{{ icon.screenReader }}</span>
-              <img :src="path(icon.iconPath)" :title="icon.screenReader" :alt="icon.screenReader" />
+              <lazy-img
+                :imgUrl="path(icon.iconPath)"
+                :imgTitle="icon.screenReader"
+                :imgAlt="icon.screenReader"
+                width="1.5rem"
+                height="1.5rem"
+              />
             </a>
           </li>
         </ul>
@@ -28,9 +34,13 @@
 
 <script lang="ts">
   import Vue from "vue";
+  import LazyLoadImg from "./LazyLoadImg.vue";
   import { SocialMedia } from "@/store/types";
 
   export default Vue.extend({
+    components: {
+      ["lazy-img"]: LazyLoadImg
+    },
     computed: {
       socialMediaIcons(): SocialMedia[] {
         return this.$store.state.socialMedia;
@@ -43,10 +53,3 @@
     }
   });
 </script>
-
-<style>
-  ul.footer-social-links.list-reset img {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-</style>

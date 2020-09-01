@@ -8,19 +8,19 @@
   .section-paragraph {
     margin-bottom: 32px;
   }
+}
 
-  &::before {
-    content: "";
-    position: absolute;
-    bottom: -32px;
-    left: calc(50% - 720px);
-    height: 263px;
-    width: 1440px;
-    background-image: url("../images/cta-illustration-light.svg");
+.contact-lazy::before {
+  content: "";
+  position: absolute;
+  bottom: -32px;
+  left: calc(50% - 720px);
+  height: 263px;
+  width: 1440px;
+  background-image: url("../images/cta-illustration-light.svg");
 
-    .lights-off & {
-      background-image: url("../images/cta-illustration-dark.svg");
-    }
+  .lights-off & {
+    background-image: url("../images/cta-illustration-dark.svg");
   }
 }
 

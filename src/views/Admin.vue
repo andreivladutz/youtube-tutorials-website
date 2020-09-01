@@ -2,11 +2,9 @@
   <main class="admin">
     <FormWrapper :errors="errors" :config="loginConfig" @submitted="loginSubmission" />
 
-    <section>
-      <div class="container">
-        <router-link to="/">Go back home...</router-link>
-      </div>
-    </section>
+    <div class="home-container">
+      <router-link class="button button-primary go-home" to="/">Go back home</router-link>
+    </div>
   </main>
 </template>
 
@@ -88,3 +86,15 @@
     }
   });
 </script>
+
+<style scoped>
+  .go-home {
+    position: absolute;
+    margin: auto;
+    top: 2rem;
+  }
+
+  .home-container {
+    text-align: center;
+  }
+</style>

@@ -1,5 +1,7 @@
 <template>
-  <FormWrapper :config="config" @submitted="submit" />
+  <section v-lazyload="lazyLoadBg" id="the-contact" class="pricing cta section">
+    <FormWrapper :config="config" @submitted="submit" />
+  </section>
 </template>
 
 <script lang="ts">
@@ -42,6 +44,10 @@
     methods: {
       submit(data: CustomFormData) {
         console.log(data);
+      },
+      // When the viewport intersects the section, start loading the bg img
+      lazyLoadBg(el: HTMLElement) {
+        el.classList.add("contact-lazy");
       }
     }
   });

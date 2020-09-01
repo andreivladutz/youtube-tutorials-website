@@ -19,15 +19,13 @@
   import Vue from "vue";
   import TheHero from "@/components/TheHero.vue";
   import TheFeatures from "@/components/TheFeatures.vue";
-  import TutorialsAnim from "@/components/TutorialsAnim.vue";
-  import TheContact from "@/components/TheContact.vue";
 
   export default Vue.extend({
     components: {
-      TutorialsAnim,
       TheHero,
       TheFeatures,
-      TheContact
+      TutorialsAnim: () => import("@/components/TutorialsAnim.vue"),
+      TheContact: () => import("@/components/TheContact.vue")
     }
   });
 </script>

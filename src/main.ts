@@ -1,4 +1,5 @@
 import Vue from "vue";
+import LazyLoadDir from "@/utils/lazyLoadDirective";
 // eslint-disable-next-line
 // @ts-ignore
 import VueAgile from "vue-agile";
@@ -9,6 +10,7 @@ import store from "./store";
 
 import "./assets/scss/style.scss";
 
+Vue.directive("lazyload", LazyLoadDir);
 Vue.use(VueAgile);
 
 Vue.config.productionTip = false;
