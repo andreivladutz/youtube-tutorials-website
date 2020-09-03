@@ -15,8 +15,15 @@ Vue.use(VueAgile);
 
 Vue.config.productionTip = false;
 
-new Vue({
+export default new Vue({
   router,
   store,
+
+  data() {
+    return {
+      loading: false,
+    };
+  },
+
   render: h => h(App),
 }).$mount("#app");

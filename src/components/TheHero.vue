@@ -68,7 +68,7 @@
 
 <script lang="ts">
   import Vue from "vue";
-  import ToggableImage from "@/components/ToggableImage.vue";
+  import ToggableImage from "@/components/tools/ToggableImage.vue";
 
   // eslint-disable-next-line
   // @ts-ignore

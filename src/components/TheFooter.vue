@@ -34,7 +34,7 @@
 
 <script lang="ts">
   import Vue from "vue";
-  import LazyLoadImg from "./LazyLoadImg.vue";
+  import LazyLoadImg from "./tools/LazyLoadImg.vue";
   import { SocialMedia } from "@/store/types";
 
   export default Vue.extend({

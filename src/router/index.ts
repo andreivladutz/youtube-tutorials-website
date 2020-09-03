@@ -2,6 +2,9 @@ import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
 
+import store from "@/store";
+import app from "@/main";
+
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
@@ -38,6 +41,34 @@ const routes: Array<RouteConfig> = [
 const router = new VueRouter({
   routes,
   mode: "history",
+});
+
+interface RootVueApp extends Vue {
+  loading: boolean;
+}
+
+router.beforeEach(async (to, from, next) => {
+  (router.app as RootVueApp).loading = true;
+
+  if (!["Admin", "AdminEdit"].includes(to.name as string)) {
+    return next();
+  }
+
+  const signedIn = await store.dispatch("firebase/checkSignedInStatus");
+
+  // Don't let the user login again if he is already logged in (as admin)
+  if (signedIn && to.name === "Admin") {
+    // Redirect to edit automatically
+    return next("/admin/edit");
+  } else if (!signedIn && to.name === "AdminEdit") {
+    return next("/admin");
+  }
+
+  next();
+});
+
+router.afterEach(() => {
+  (router.app as RootVueApp).loading = false;
 });
 
 export default router;
