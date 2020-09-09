@@ -1,14 +1,20 @@
+// Fetch 20 media items at once instead of the default 5 per request
+const RESULTS_PER_PAGE = 20;
+
 function ENDPOINT_URL(
   mediaId: "videos" | "playlists",
   ids: string[],
   apiKey: string,
   pageToken?: string
 ) {
-  const idString = ids.reduce((idStr, currId) => {
-    return `${idStr},${currId}`;
-  }, "");
+  const idString = ids.length
+    ? ids.reduce((idStr, currId) => `${idStr},${currId}`)
+    : "";
+  // If we are fetching videos, we want to fetch them by their ids.
+  // Otherwise, if we are fetching playlists we want to fetch them all for Gabbit's channel
+  const idEndpoint = `${mediaId === "videos" ? "id" : "channelId"}=${idString}`;
 
-  return `https://www.googleapis.com/youtube/v3/${mediaId}?part=snippet&id=${idString}&key=${apiKey}${
+  return `https://www.googleapis.com/youtube/v3/${mediaId}?part=snippet&${idEndpoint}&maxResults=${RESULTS_PER_PAGE}&key=${apiKey}${
     pageToken ? `&pageToken=${pageToken}` : ""
   }`;
 }
@@ -38,6 +44,8 @@ export const FIREBASE_CFG = {
   appId: "1:686138924877:web:ffcb83c3c186311788e104",
 };
 
-export const REALTIME_DB = {
-  KEY_PATH: "ytApiKey",
-};
+export const THUMBNAIL_WIDTH = 480;
+// The thumbnail height after the polygon clip-path cut
+export const THUMBNAIL_HEIGHT_CUT = 1 - 0.26; // (13% cut on each side)
+
+export const REALTIME_DB = {};

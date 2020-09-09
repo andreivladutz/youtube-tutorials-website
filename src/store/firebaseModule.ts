@@ -1,5 +1,5 @@
 /** All logic related to firebase */
-import { Module } from "vuex";
+import { Module, Commit } from "vuex";
 
 import * as firebase from "firebase/app";
 import "firebase/auth";
@@ -11,6 +11,33 @@ import { FirebaseModuleState, AppStoreState } from "./types";
 firebase.initializeApp(FIREBASE_CFG);
 const db = firebase.database();
 
+/**
+ * Keep a @param path in sync with the firebase state
+ * @param keepUpdated whether to fetch once the value or keep updated at every step
+ * @param commit the store commit function
+ */
+function mapFirebaseToState(
+  path: string[],
+  keepUpdated: boolean,
+  commit: Commit
+): Promise<void> {
+  const listenMethod: "on" | "once" = keepUpdated ? "on" : "once";
+  const firebasePath = path.reduce(
+    (reducedPath, key) => `${reducedPath}/${key}`
+  );
+
+  return new Promise(resolve => {
+    db.ref(firebasePath)[listenMethod]("value", dataSnap => {
+      commit("updateStateValue", {
+        path: path,
+        value: dataSnap.val(),
+      });
+
+      resolve();
+    });
+  });
+}
+
 let waitingForAuthStateChange = false;
 
 export default {
@@ -18,16 +45,18 @@ export default {
   state: {
     // Will be retreived from the realtime db
     apiKey: "",
+    channelId: "",
 
     // After successful login as admin, will be set to true
     isAdmin: false,
   },
   actions: {
-    // Get the api key used to fetch thumbnails
-    async getApiKey({ commit }) {
-      const apiKey = (await db.ref(REALTIME_DB.KEY_PATH).once("value")).val();
-
-      commit("registerApiKey", apiKey);
+    // Get the credentials needed to call the yt api like the api key and Gabbitt's channel id
+    async getYoutubeCredentials({ commit }) {
+      await Promise.all([
+        mapFirebaseToState(["apiKey"], false, commit),
+        mapFirebaseToState(["channelId"], false, commit),
+      ]);
     },
 
     async signOut() {
@@ -62,9 +91,20 @@ export default {
     },
   },
   mutations: {
-    registerApiKey(state, apiKey) {
-      state.apiKey = apiKey;
+    // Update the state at any path e.g. ["key1", "key2", ...]
+    updateStateValue(
+      state,
+      { path, value }: { path: (keyof FirebaseModuleState)[]; value: any }
+    ) {
+      let ref: any = state;
+
+      for (const key of path.slice(0, -1)) {
+        ref = ref[key];
+      }
+
+      ref[path[path.length - 1]] = value;
     },
+
     adminAuthStateChange(state, newState: boolean) {
       state.isAdmin = newState;
     },

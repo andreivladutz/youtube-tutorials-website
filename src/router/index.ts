@@ -3,7 +3,7 @@ import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
 
 import store from "@/store";
-import app from "@/main";
+import { RootVueApp } from "@/main";
 
 Vue.use(VueRouter);
 
@@ -42,10 +42,6 @@ const router = new VueRouter({
   routes,
   mode: "history",
 });
-
-interface RootVueApp extends Vue {
-  loading: boolean;
-}
 
 router.beforeEach(async (to, from, next) => {
   (router.app as RootVueApp).loading = true;

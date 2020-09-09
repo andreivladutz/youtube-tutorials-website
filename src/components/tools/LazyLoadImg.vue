@@ -1,11 +1,11 @@
 <template>
-  <figure v-lazyload="loadImage">
+  <figure :style="sizeStyle" class="lazyload-wrapper" v-lazyload="loadImage">
     <img
       class="no-load"
       :style="sizeStyle"
       :data-url="imgUrl"
       :alt="imgAlt"
-      :title="(imgTitle || '')"
+      :title="imgTitle || ''"
     />
     <div v-if="!hidePlaceholder" class="img-substitute" :style="sizeStyle"></div>
   </figure>
@@ -77,5 +77,11 @@
   .no-load + .img-substitute {
     border-radius: 5px;
     background-color: #4d4d4d4b;
+
+    display: inline-block;
+  }
+
+  figure.lazyload-wrapper {
+    display: inline-block;
   }
 </style>

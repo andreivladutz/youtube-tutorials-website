@@ -10,6 +10,7 @@
   "dependencies": {
     "@types/gsap": "^1.20.2",
     "core-js": "^3.6.5",
+    "element-ui": "^2.13.2",
     "firebase": "^7.19.0",
     "gsap": "file:gsap-beta.tgz",
     "parallax-js": "^3.1.0",
@@ -30,6 +31,7 @@
     "@vue/cli-plugin-vuex": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/eslint-config-typescript": "^5.0.2",
+    "babel-plugin-component": "^1.1.1",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "typescript": "~3.9.3",

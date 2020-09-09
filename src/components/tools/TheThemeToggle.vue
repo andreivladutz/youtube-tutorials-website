@@ -15,12 +15,20 @@
 </template>
 
 <script lang="ts">
+import { RootVueApp } from "@/main";
 import Vue from "vue";
+
 export default Vue.extend({
-  data() {
-    return {
-      isLightTheme: false,
-    };
+  computed: {
+    isLightTheme: {
+      get() {
+        return (this.$root as RootVueApp).isLightTheme;
+      },
+
+      set(value: boolean) {
+        (this.$root as RootVueApp).isLightTheme = value;
+      },
+    },
   },
   watch: {
     isLightTheme(newValue) {

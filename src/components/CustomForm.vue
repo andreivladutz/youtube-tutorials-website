@@ -35,6 +35,7 @@
             required
             :value="getInputValue(field)"
             @input="setValueFromInput(field, $event.target.value)"
+            @blur="onInputUnfocus(field)"
           />
 
           <!-- The counter in case of a textarea (message field) -->
@@ -132,6 +133,13 @@
         }
       },
 
+      onInputUnfocus(field: FormField) {
+        // The email field has been unfocused
+        if (field.type === "email") {
+          this.validate("email", this.email?.value as string);
+        }
+      },
+
       // submit form handler
       submit: function() {
         this.$emit("submitted", { ...this.$data });
@@ -146,13 +154,13 @@
       isEmail: function(value: string) {
         return emailRegExp.test(value);
       }
-    },
-    watch: {
-      // watching nested property
-      "email.value": function(value) {
-        this.validate("email", value);
-      }
     }
+    // watch: {
+    //   // watching nested property
+    //   "email.value": function(value) {
+    //     this.validate("email", value);
+    //   }
+    // }
   });
 </script>
 

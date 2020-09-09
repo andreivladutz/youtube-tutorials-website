@@ -11,6 +11,7 @@
         @mouseleave="hideAuthorDescription"
       >
         <img
+          v-thumbnail
           @load="thumbnailLoaded"
           :class="[
             focusedTutorialId === tutorial.id ? 'hovered' : '',
@@ -18,6 +19,7 @@
           ]"
           :src="tutorial.thumbnailUrl"
           :title="tutorial.title"
+          :alt="tutorial.title"
         />
         <span
           v-if="tutorial.authorDescription"
@@ -189,7 +191,6 @@
     width: 100%;
     opacity: 0.5;
 
-    clip-path: polygon(0% 13%, 100% 13%, 100% 87%, 0% 87%);
     transition: all 0.5s ease-in;
   }
 

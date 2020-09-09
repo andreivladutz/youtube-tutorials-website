@@ -2,15 +2,8 @@
   <main class="home">
     <EditNavbar @sign-out="signOutAndRedirect" />
     <TheHero />
-    <TheFeatures />
 
-    <section class="section">
-      <div class="container">
-        <div class="section-inner has-bottom-divider">
-          <TutorialsAnim />
-        </div>
-      </div>
-    </section>
+    <YoutubeTutsEdit />
 
     <TheContact />
   </main>
@@ -20,20 +13,34 @@
   import Vue from "vue";
   import EditNavbar from "@/components/admin/EditNavbar.vue";
   import TheHero from "@/components/TheHero.vue";
-  import TheFeatures from "@/components/TheFeatures.vue";
-  import TutorialsAnim from "@/components/TutorialsAnim.vue";
+
+  import YoutubeTutsEdit from "@/components/admin/YoutubeTutsEdit.vue";
   import TheContact from "@/components/TheContact.vue";
 
   import { mapActions, mapState } from "vuex";
   import { FirebaseModuleState } from "@/store/types";
+  import { RootVueApp } from "@/main";
 
   export default Vue.extend({
     components: {
-      TutorialsAnim,
       TheHero,
-      TheFeatures,
+      YoutubeTutsEdit,
       TheContact,
       EditNavbar
+    },
+    beforeRouteEnter(_to, _from, next) {
+      next(vm => {
+        (vm.$root as RootVueApp).isLightTheme = true;
+        // Hide the toggle button
+        (vm.$root as RootVueApp).showThemeToggle = false;
+      });
+    },
+    beforeRouteLeave(_to, _from, next) {
+      (this.$root as RootVueApp).isLightTheme = false;
+      // Show the toggle button
+      (this.$root as RootVueApp).showThemeToggle = true;
+
+      next();
     },
     data() {
       return {

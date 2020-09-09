@@ -1,8 +1,16 @@
 // STORE MODULES:
 export interface FirebaseModuleState {
   apiKey: string;
+  // Gabbitt's channel id
+  channelId: string;
 
   isAdmin: boolean;
+}
+
+export interface YoutubeModuleState {
+  tutorials: {
+    [Id: string]: Tutorial;
+  };
 }
 
 export interface AppStoreState {
@@ -11,18 +19,30 @@ export interface AppStoreState {
   socialMedia: SocialMedia[];
 
   firebase?: FirebaseModuleState;
+  youtube?: YoutubeModuleState;
 }
 
 export interface Tutorial {
   id: string;
   isPlaylist?: boolean;
+  // If the Tutorial is a playlist, it contains videos, so it has a dictionary where the keys are videos' ids
+  playlistVideos?: {
+    [Id: string]: boolean;
+  };
+
+  // The date and time that the playlist was created. The value is specified in ISO 8601 format.
+  publishedAt: string;
 
   // The description added by the author for this tutorial (manually for the website)
   authorDescription?: string;
 
   title?: string;
   description?: string;
-  thumbnailUrl?: string;
+  thumbnail?: {
+    url: string;
+    width: number;
+    height: number;
+  };
 }
 
 // The json response returned from the yt endpoint
@@ -40,6 +60,8 @@ export interface PlaylistResp {
   snippet: {
     title: string;
     description: string;
+    // The date and time that the playlist was created. The value is specified in ISO 8601 format.
+    publishedAt: string;
 
     thumbnails: {
       default: ThumbnailResp;
