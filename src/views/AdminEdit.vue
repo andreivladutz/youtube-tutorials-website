@@ -28,20 +28,6 @@
       TheContact,
       EditNavbar
     },
-    beforeRouteEnter(_to, _from, next) {
-      next(vm => {
-        (vm.$root as RootVueApp).isLightTheme = true;
-        // Hide the toggle button
-        (vm.$root as RootVueApp).showThemeToggle = false;
-      });
-    },
-    beforeRouteLeave(_to, _from, next) {
-      (this.$root as RootVueApp).isLightTheme = false;
-      // Show the toggle button
-      (this.$root as RootVueApp).showThemeToggle = true;
-
-      next();
-    },
     data() {
       return {
         isSaved: false,
@@ -62,20 +48,36 @@
         this.$router.push("/");
       }
     },
+    /** Navigation guards that apply page-specific logic */
+    beforeRouteEnter(_to, _from, next) {
+      next(vm => {
+        (vm.$root as RootVueApp).isLightTheme = true;
+        // Hide the toggle button
+        (vm.$root as RootVueApp).showThemeToggle = false;
+      });
+    },
     async beforeRouteLeave(_to, _from, next) {
       if (!this.isAdmin) {
         return next();
       }
 
-      const answer = window.confirm(
-        "Are you sure you want to leave? Any unsaved changes might be lost!"
-      );
+      let answer = true;
+      if (!this.isSaved) {
+        answer = window.confirm(
+          "Are you sure you want to leave? Any unsaved changes will be lost!"
+        );
+      }
 
       if (answer) {
         if (this.shouldSignOut) {
           await this.signOut();
           this.shouldSignOut = false;
         }
+
+        // Reset the theme and the toggle button before leaving
+        (this.$root as RootVueApp).isLightTheme = false;
+        // Show the toggle button
+        (this.$root as RootVueApp).showThemeToggle = true;
 
         next();
       } else {

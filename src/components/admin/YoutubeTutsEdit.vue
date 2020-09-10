@@ -16,11 +16,6 @@
   import { YoutubeModuleState } from "@/store/types";
 
   export default Vue.extend({
-    // data() {
-    //   return {
-    //     newlyFetchedTuts: {} as { [Id: string]: Tutorial }
-    //   };
-    // },
     components: {
       CategoriesTabs
     },
@@ -34,10 +29,6 @@
     },
     created() {
       this.fetchPlaylists();
-
-      // Vue.set(
-      //   this.newlyFetchedTuts,
-      // );
     }
   });
 </script>

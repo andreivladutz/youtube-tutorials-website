@@ -1,25 +1,6 @@
 <template>
   <el-card :body-style="{ display: 'flex' }" class="box-card">
-    <figure
-      :style="{
-        height: imgHeight,
-        lineHeight: imgHeight,
-      }"
-      class="include-wrapper"
-    >
-      <input id="tornado-include" type="checkbox" />
-    </figure>
-
-    <lazy-img
-      v-thumbnail
-      :imgUrl="imgUrl"
-      :imgTitle="tutorial.title"
-      :imgAlt="tutorial.title"
-      :width="imgWidth"
-      :height="imgHeight"
-    />
-
-    <div slot="header" class="clearfix">
+    <!-- <div slot="header" class="clearfix">
       <span>
         {{ tutorial.title }}
         <i v-if="tutorial.isPlaylist">( playlist )</i>
@@ -29,7 +10,32 @@
         style="float: right"
         class="button"
       >Show videos from playlist</button>
-    </div>
+    </div>-->
+
+    <label for="tornado-include">
+      <figure
+        :style="{
+        height: imgHeight,
+        width: 'auto',
+        lineHeight: imgHeight,
+      }"
+        class="include-wrapper"
+      >
+        <input id="tornado-include" type="checkbox" />
+      </figure>
+    </label>
+
+    <label for="tornado-include">
+      <lazy-img
+        v-thumbnail
+        :imgUrl="imgUrl"
+        :imgTitle="tutorial.title"
+        :imgAlt="tutorial.title"
+        :width="imgWidth"
+        :height="imgHeight"
+      />
+    </label>
+
     <div v-for="o in 4" :key="o" class="text item">{{ "List item " + o }}</div>
   </el-card>
 </template>

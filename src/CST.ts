@@ -2,7 +2,7 @@
 const RESULTS_PER_PAGE = 20;
 
 function ENDPOINT_URL(
-  mediaId: "videos" | "playlists",
+  mediaId: "videos" | "playlists" | "playlistItems",
   ids: string[],
   apiKey: string,
   pageToken?: string
@@ -11,10 +11,27 @@ function ENDPOINT_URL(
     ? ids.reduce((idStr, currId) => `${idStr},${currId}`)
     : "";
   // If we are fetching videos, we want to fetch them by their ids.
+  // If we are fetching playlistItems (videos inside playlists) we want to fetch them by playlistId
   // Otherwise, if we are fetching playlists we want to fetch them all for Gabbit's channel
-  const idEndpoint = `${mediaId === "videos" ? "id" : "channelId"}=${idString}`;
+  let idEndpoint: string;
+  let partEndpoint = "snippet";
 
-  return `https://www.googleapis.com/youtube/v3/${mediaId}?part=snippet&${idEndpoint}&maxResults=${RESULTS_PER_PAGE}&key=${apiKey}${
+  switch (mediaId) {
+    case "videos":
+      idEndpoint = "id";
+      break;
+    case "playlists":
+      idEndpoint = "channelId";
+      break;
+    case "playlistItems":
+      idEndpoint = "playlistId";
+      partEndpoint += ",contentDetails";
+      break;
+  }
+
+  idEndpoint = `${idEndpoint}=${idString}`;
+
+  return `https://www.googleapis.com/youtube/v3/${mediaId}?part=${partEndpoint}&${idEndpoint}&maxResults=${RESULTS_PER_PAGE}&key=${apiKey}${
     pageToken ? `&pageToken=${pageToken}` : ""
   }`;
 }
@@ -22,6 +39,14 @@ function ENDPOINT_URL(
 export default {
   VIDEO_ENDPOINT(videosIds: string[], apiKey: string, pageToken?: string) {
     return ENDPOINT_URL("videos", videosIds, apiKey, pageToken);
+  },
+
+  PLAYLIST_ITEMS_ENDPOINT(
+    playlistIds: string[],
+    apiKey: string,
+    pageToken?: string
+  ) {
+    return ENDPOINT_URL("playlistItems", playlistIds, apiKey, pageToken);
   },
   /**
    * Return the endpoint string to fetch a youtube playlist's thumbnail url

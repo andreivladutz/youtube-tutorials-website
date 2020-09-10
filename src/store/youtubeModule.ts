@@ -8,6 +8,8 @@ import {
   YoutubeModuleState,
   AppStoreState,
   Tutorial,
+  PlaylistTutorial,
+  VideoTutorial,
 } from "./types";
 import CST from "@/CST";
 
@@ -27,7 +29,10 @@ export default {
       {
         responses,
         isPlaylists,
-      }: { responses: PlaylistResp[]; isPlaylists: boolean }
+      }: {
+        responses: PlaylistResp[];
+        isPlaylists: boolean;
+      }
     ) {
       for (const response of responses) {
         const tutorial: Tutorial = {
@@ -36,11 +41,29 @@ export default {
           title: response.snippet.title,
           description: response.snippet.description,
           authorDescription: "",
-
-          // If the tutorials are playlists manage that case
-          isPlaylist: isPlaylists,
-          playlistVideos: isPlaylists ? {} : undefined,
         };
+
+        if (isPlaylists) {
+          // If the tutorials are playlists manage that case
+          (tutorial as PlaylistTutorial).isPlaylist = isPlaylists;
+          (tutorial as PlaylistTutorial).playlistVideos = {};
+        } else {
+          // Save the global video id and the time of publishing to playlist
+          tutorial.id = response.contentDetails?.videoId as string;
+          tutorial.publishedAt = response.contentDetails
+            ?.videoPublishedAt as string;
+          (tutorial as VideoTutorial).position = response.snippet
+            .position as number;
+
+          // Save the playlist's id
+          const playlistId = response.snippet.playlistId as string;
+          (tutorial as VideoTutorial).playlistId = playlistId;
+
+          // Save this tutorial as part of its playlist
+          (state.tutorials[playlistId] as PlaylistTutorial).playlistVideos[
+            tutorial.id
+          ] = true;
+        }
 
         let thumbnailObject: ThumbnailResp = {
           url: "",
@@ -106,7 +129,7 @@ export default {
         "fetchPlaylistsVideosData",
         {
           ids: [rootState.firebase?.channelId],
-          isPlaylists: true,
+          endpoint: CST.PLAYLIST_ENDPOINT,
         }
       );
 
@@ -116,6 +139,35 @@ export default {
           responses: playlistResp.items,
           isPlaylists: true,
         });
+      }
+
+      dispatch("fetchPlaylistsVideos");
+    },
+
+    // Fetch the videos inside playlists. Should be dispatched only after ALL PLAYLIST have been fetched
+    async fetchPlaylistsVideos({ state, dispatch, commit }) {
+      let playlistResp: YouTubePlaylistQueryResp;
+
+      for (const tutorial of Object.values(state.tutorials)) {
+        if (!(tutorial as PlaylistTutorial).isPlaylist) {
+          continue;
+        }
+
+        const videosGenerator: AsyncGenerator<YouTubePlaylistQueryResp> = await dispatch(
+          "fetchPlaylistsVideosData",
+          {
+            ids: [tutorial.id],
+            endpoint: CST.PLAYLIST_ITEMS_ENDPOINT,
+          }
+        );
+
+        // Fetch chunks of playlists' VIDEOS and save it
+        for await (playlistResp of videosGenerator) {
+          commit("saveTutorials", {
+            responses: playlistResp.items,
+            isPlaylists: false,
+          });
+        }
       }
     },
 
@@ -127,16 +179,14 @@ export default {
      */
     async *fetchPlaylistsVideosData(
       { rootState },
-      { ids, isPlaylists = false }: { ids: string[]; isPlaylists?: boolean }
-    ) {
-      let endpoint: (ids: string[], key: string, pageTok: string) => string;
-
-      if (isPlaylists) {
-        endpoint = CST.PLAYLIST_ENDPOINT;
-      } else {
-        endpoint = CST.VIDEO_ENDPOINT;
+      {
+        ids,
+        endpoint,
+      }: {
+        ids: string[];
+        endpoint: (ids: string[], key: string, pageTok: string) => string;
       }
-
+    ) {
       // The response of the query to the playlist or video endpoint containing the thumbnail details
       let playlistResponse: YouTubePlaylistQueryResp;
       // While there are next pages keep fetching them

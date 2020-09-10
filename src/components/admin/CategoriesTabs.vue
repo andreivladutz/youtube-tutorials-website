@@ -1,22 +1,21 @@
 <template>
-  <div class="tabs">
+  <div class="tabs" :style="{userSelect: 'none'}">
     <div style="margin-bottom: 20px;">
       <button class="button button-primary" @click="addTab">Add Category</button>
     </div>
     <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
       <el-tab-pane label="All playlists / videos" :closable="false" name="all">
-        <YoutubeEntry v-for="tutorial in newlyFetchedTuts" :key="tutorial.id" :tutorial="tutorial" />
+        <YoutubeEntries defaultOpen :tutorials="newlyFetchedTuts" />
       </el-tab-pane>
       <el-tab-pane
         v-for="item in editableTabs"
-        :key="item.name"
-        :name="item.name"
-        :label="item.title"
+        :key="item.uid"
+        :name="item.uid"
+        :label="item.name"
         lazy
         closable
       >
         <!-- <YoutubeEntry /> -->
-        {{ item.content }}
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -25,51 +24,35 @@
 <script lang="ts">
   import Vue, { PropType } from "vue";
   import { Tabs, TabPane } from "element-ui";
-  import YoutubeEntry from "./YoutubeEntry.vue";
+  import YoutubeEntries from "./YoutubeEntries.vue";
 
-  import { Tutorial } from "@/store/types";
+  import { Tutorial, Category } from "@/store/types";
 
   export default Vue.extend({
     components: {
       "el-tabs": Tabs,
       "el-tab-pane": TabPane,
 
-      YoutubeEntry
+      YoutubeEntries
     },
     props: {
       newlyFetchedTuts: {
-        type: Object as PropType<{ [Id: string]: Tutorial }>
+        type: Object as PropType<{ [Id: string]: Tutorial }>,
+        required: true
       }
     },
     data() {
       return {
         editableTabsValue: "all",
-        editableTabs: [
-          {
-            title: "Tab 1",
-            name: "1",
-            content: "Tab 1 content"
-          },
-          {
-            title: "Tab 2",
-            name: "2",
-            content: "Tab 2 content"
-          }
-        ],
-        tabIndex: 2
+        editableTabs: [new Category()] as Category[]
       };
     },
     methods: {
       addTab() {
-        const newTabName = `${++this.tabIndex}`;
+        const newCategory = new Category();
+        this.editableTabs.push(newCategory);
 
-        this.editableTabs.push({
-          title: "New Category",
-          name: newTabName,
-          content: "New Tab content"
-        });
-
-        this.editableTabsValue = newTabName;
+        this.editableTabsValue = newCategory.uid;
       },
       removeTab(targetName: string) {
         const tabs = this.editableTabs;
@@ -77,18 +60,18 @@
 
         if (activeName === targetName) {
           tabs.forEach((tab, index) => {
-            if (tab.name === targetName) {
+            if (tab.uid === targetName) {
               const nextTab = tabs[index + 1] || tabs[index - 1];
 
               if (nextTab) {
-                activeName = nextTab.name;
+                activeName = nextTab.uid;
               }
             }
           });
         }
 
         this.editableTabsValue = activeName;
-        this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+        this.editableTabs = tabs.filter(tab => tab.uid !== targetName);
       }
     }
   });
