@@ -5,7 +5,24 @@
     </div>
     <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
       <el-tab-pane label="All playlists / videos" :closable="false" name="all">
-        <YoutubeEntries defaultOpen :tutorials="newlyFetchedTuts" />
+        <div style="padding-bottom: 1rem" class="clearfix">
+          <button
+            class="button button-primary"
+            :style="{float: 'right'}"
+            @click="fetchNewPlaylists"
+          >Fetch new playlists</button>
+        </div>
+
+        <div class="loading-indicator-wrapper" v-if="loading">
+          <LoadingIndicator />
+        </div>
+
+        <YoutubeEntries
+          defaultOpen
+          :loading.sync="loading"
+          :tutorials="tutorials"
+          :newlyFetchedTuts="newlyFetchedTuts"
+        />
       </el-tab-pane>
       <el-tab-pane
         v-for="item in editableTabs"
@@ -22,11 +39,12 @@
 </template>
 
 <script lang="ts">
-  import Vue, { PropType } from "vue";
+  import Vue from "vue";
   import { Tabs, TabPane } from "element-ui";
   import YoutubeEntries from "./YoutubeEntries.vue";
 
-  import { Tutorial, Category } from "@/store/types";
+  import { Tutorial, Category, YoutubeModuleState } from "@/store/types";
+  import { mapActions, mapGetters, mapState } from "vuex";
 
   export default Vue.extend({
     components: {
@@ -35,19 +53,31 @@
 
       YoutubeEntries
     },
-    props: {
-      newlyFetchedTuts: {
-        type: Object as PropType<{ [Id: string]: Tutorial }>,
-        required: true
-      }
-    },
     data() {
       return {
         editableTabsValue: "all",
-        editableTabs: [new Category()] as Category[]
+        editableTabs: [new Category()] as Category[],
+        loading: false
       };
     },
+    computed: {
+      ...mapState("youtube", {
+        newlyFetchedTuts: state => (state as YoutubeModuleState).tutorials
+      }),
+      ...mapGetters(["tutorials"])
+    },
     methods: {
+      ...mapActions("youtube", ["fetchPlaylists"]),
+      async fetchNewPlaylists() {
+        this.loading = true;
+
+        const generator: AsyncGenerator<void> = await this.fetchPlaylists();
+        await generator.next();
+
+        this.loading = false;
+
+        for await (const _ of generator);
+      },
       addTab() {
         const newCategory = new Category();
         this.editableTabs.push(newCategory);
@@ -79,6 +109,19 @@
 
 <style lang="scss">
   $font-size: 1rem;
+  $added-color: rgba(0, 255, 242, 0.5);
+  $removed-color: rgba(255, 60, 0, 0.5);
+
+  .loading-indicator-wrapper {
+    position: fixed;
+    top: 40vh;
+    left: 0;
+
+    z-index: 9000;
+
+    width: 100%;
+    height: 100vh;
+  }
 
   .el-tabs--card > .el-tabs__header .el-tabs__item .el-icon-close {
     font-size: $font-size;
@@ -91,5 +134,17 @@
     font-size: $font-size;
     padding: 0 $font-size !important;
     /* line-height: $font-size; */
+  }
+
+  .el-collapse-item__header,
+  .el-card.is-always-shadow {
+    .newly-added & {
+      box-shadow: 0 2px 12px 0 $added-color;
+      border-color: $added-color;
+    }
+    .newly-removed & {
+      box-shadow: 0 2px 12px 0 $removed-color;
+      border-color: $removed-color;
+    }
   }
 </style>

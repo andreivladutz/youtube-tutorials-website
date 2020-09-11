@@ -5,7 +5,7 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
 
-import { FIREBASE_CFG, REALTIME_DB } from "../CST";
+import { FIREBASE_CFG } from "../CST";
 import { FirebaseModuleState, AppStoreState } from "./types";
 
 firebase.initializeApp(FIREBASE_CFG);
@@ -46,6 +46,8 @@ export default {
     // Will be retreived from the realtime db
     apiKey: "",
     channelId: "",
+
+    tutorials: {},
 
     // After successful login as admin, will be set to true
     isAdmin: false,

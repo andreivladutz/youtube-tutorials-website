@@ -41,6 +41,9 @@ export default {
           title: response.snippet.title,
           description: response.snippet.description,
           authorDescription: "",
+
+          // Tutorials are by default hidden
+          isVisible: false,
         };
 
         if (isPlaylists) {
@@ -89,40 +92,25 @@ export default {
         Vue.set(state.tutorials, tutorial.id, tutorial);
       }
     },
+
+    removeVideoTutorialsFromPlaylist(state, playlistId: string) {
+      const playlistTutorial = state.tutorials[playlistId] as PlaylistTutorial;
+
+      // Remove all video tutorials from the state first and then from the playlist
+      for (const videoId of Object.keys(playlistTutorial.playlistVideos)) {
+        Vue.delete(state.tutorials, videoId);
+        Vue.delete(playlistTutorial.playlistVideos, videoId);
+      }
+    },
   },
   actions: {
-    // async fetchThumbnails({ dispatch, rootState }) {
-    //   const missingThumbnails: Tutorial[] = [];
-
-    //   for (const tutorial of rootState.tutorials) {
-    //     if (!tutorial.thumbnailUrl) {
-    //       missingThumbnails.push(tutorial);
-    //     }
-    //   }
-
-    //   const playlistIds: string[] = [];
-    //   const videoIds: string[] = [];
-
-    //   missingThumbnails.forEach(tutorial => {
-    //     if (tutorial.isPlaylist) {
-    //       playlistIds.push(tutorial.id);
-    //     } else {
-    //       videoIds.push(tutorial.id);
-    //     }
-    //   });
-
-    //   await Promise.all([
-    //     dispatch("fetchPlaylistsVideosData", {
-    //       ids: videoIds,
-    //     }),
-    //   ]);
-    // },
-
     // Fetches all the playlists for this channel that were created after the received date
     // Gets a timestamp, fetches and returns the most recent timestamp fetched
-    async fetchPlaylists({ dispatch, rootState, commit }) {
-      // First, get the api key from the database, then, also get the channel id
-      await dispatch("firebase/getYoutubeCredentials", null, { root: true });
+    async *fetchPlaylists({ dispatch, rootState, commit }) {
+      if (!rootState.firebase?.channelId) {
+        // First, get the api key from the database, then, also get the channel id
+        await dispatch("firebase/getYoutubeCredentials", null, { root: true });
+      }
       let playlistResp: YouTubePlaylistQueryResp;
 
       const playlistGenerator: AsyncGenerator<YouTubePlaylistQueryResp> = await dispatch(
@@ -139,35 +127,44 @@ export default {
           responses: playlistResp.items,
           isPlaylists: true,
         });
+
+        yield;
       }
 
-      dispatch("fetchPlaylistsVideos");
+      // dispatch("fetchVideosInAllPlaylists");
     },
 
     // Fetch the videos inside playlists. Should be dispatched only after ALL PLAYLIST have been fetched
-    async fetchPlaylistsVideos({ state, dispatch, commit }) {
-      let playlistResp: YouTubePlaylistQueryResp;
-
+    async fetchVideosInAllPlaylists({ state, dispatch }) {
       for (const tutorial of Object.values(state.tutorials)) {
         if (!(tutorial as PlaylistTutorial).isPlaylist) {
           continue;
         }
 
-        const videosGenerator: AsyncGenerator<YouTubePlaylistQueryResp> = await dispatch(
-          "fetchPlaylistsVideosData",
-          {
-            ids: [tutorial.id],
-            endpoint: CST.PLAYLIST_ITEMS_ENDPOINT,
-          }
-        );
+        dispatch("fetchVideosInPlaylist", tutorial.id);
+      }
+    },
 
-        // Fetch chunks of playlists' VIDEOS and save it
-        for await (playlistResp of videosGenerator) {
-          commit("saveTutorials", {
-            responses: playlistResp.items,
-            isPlaylists: false,
-          });
+    /**
+     * Fetch the tutorial videos for the playlist with id @param playlistId
+     */
+    async fetchVideosInPlaylist({ dispatch, commit }, playlistId) {
+      let playlistResp: YouTubePlaylistQueryResp;
+
+      const videosGenerator: AsyncGenerator<YouTubePlaylistQueryResp> = await dispatch(
+        "fetchPlaylistsVideosData",
+        {
+          ids: [playlistId],
+          endpoint: CST.PLAYLIST_ITEMS_ENDPOINT,
         }
+      );
+
+      // Fetch chunks of playlists' VIDEOS and save it
+      for await (playlistResp of videosGenerator) {
+        commit("saveTutorials", {
+          responses: playlistResp.items,
+          isPlaylists: false,
+        });
       }
     },
 
@@ -178,7 +175,7 @@ export default {
      * @param getPlaylists if the ids belong to playlists or they belong to videos
      */
     async *fetchPlaylistsVideosData(
-      { rootState },
+      { rootState, dispatch },
       {
         ids,
         endpoint,
@@ -191,6 +188,11 @@ export default {
       let playlistResponse: YouTubePlaylistQueryResp;
       // While there are next pages keep fetching them
       let nextPageToken = "";
+
+      if (!rootState.firebase?.apiKey) {
+        // First, get the api key from the database, then, also get the channel id
+        await dispatch("firebase/getYoutubeCredentials", null, { root: true });
+      }
 
       const apiKey = rootState.firebase ? rootState.firebase.apiKey : "";
 

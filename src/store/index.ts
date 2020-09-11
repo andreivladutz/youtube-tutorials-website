@@ -10,6 +10,7 @@ import {
   AppStoreState,
   PlaylistResp,
   ThumbnailResp,
+  TutorialsDictionary,
 } from "./types";
 import socialMedia from "./socialMedia";
 
@@ -21,43 +22,6 @@ export default new Vuex.Store<AppStoreState>({
     youtube: youtubeModule,
   },
   state: {
-    tutorials: [
-      {
-        id: "PLn3ukorJv4vvh0uQl3qh6QiOnpNlKx6F5",
-        isPlaylist: true,
-
-        authorDescription:
-          "A very basic series starting right from the beginning",
-      },
-      {
-        id: "PLn3ukorJv4vsPA95G7jTHDHixF5FntFm3",
-        isPlaylist: true,
-
-        authorDescription:
-          "Another basic description for a basic test. Do some this and do some that, do some kek and come right back",
-      },
-      {
-        id: "PLn3ukorJv4vtf9E9IQk7Acbe7cKkEnuyk",
-        isPlaylist: true,
-      },
-      {
-        id: "PLn3ukorJv4vsa02LIuM_IQF-SASAZBnyi",
-        isPlaylist: true,
-      },
-      {
-        id: "PLn3ukorJv4vtvjZvdiOeoSA5kBohtnDOF",
-        isPlaylist: true,
-      },
-      {
-        id: "PLn3ukorJv4vvv3ZpWJYvV5Tmvo7ISO-NN",
-        isPlaylist: true,
-      },
-      {
-        id: "PLn3ukorJv4vu9Tkxju13cHYZCR9kIloe2",
-        isPlaylist: true,
-      },
-      { id: "2j_ViBgx5FA" },
-    ] as Tutorial[],
     products: [
       {
         title: "Character Course",
@@ -81,5 +45,21 @@ export default new Vuex.Store<AppStoreState>({
       },
     ] as Product[],
     socialMedia,
+  },
+  getters: {
+    tutorials(state): TutorialsDictionary {
+      return {
+        ...state.youtube?.tutorials,
+        ...state.firebase?.tutorials,
+      };
+    },
+  },
+
+  actions: {
+    // Remove the videos fetched for a playlist => in youtube and
+    // TODO: from firebase
+    removeVideosInPlaylist({ commit }, playlistId: string) {
+      commit("youtube/removeVideoTutorialsFromPlaylist", playlistId);
+    },
   },
 });

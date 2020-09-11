@@ -4,22 +4,29 @@ export interface FirebaseModuleState {
   // Gabbitt's channel id
   channelId: string;
 
+  tutorials: TutorialsDictionary;
+
   isAdmin: boolean;
 }
 
 export interface YoutubeModuleState {
-  tutorials: {
-    [Id: string]: Tutorial;
-  };
+  tutorials: TutorialsDictionary;
 }
 
 export interface AppStoreState {
-  tutorials: Tutorial[];
   products: Product[];
   socialMedia: SocialMedia[];
 
   firebase?: FirebaseModuleState;
   youtube?: YoutubeModuleState;
+}
+
+export type TutorialsDictionary = Record<string, Tutorial>;
+
+export interface Thumbnail {
+  url: string;
+  width: number;
+  height: number;
 }
 
 export interface Tutorial {
@@ -33,12 +40,10 @@ export interface Tutorial {
 
   title?: string;
   description?: string;
-  thumbnail?: {
-    url: string;
-    width: number;
-    height: number;
-  };
+  thumbnail?: Thumbnail;
 
+  // Whether the tutorial is shown inside the tutorial tornado or not
+  isVisible: boolean;
   // Every tutorial belongs to one or more categories
   // Keep their uids in an array
   categories?: [];
@@ -46,6 +51,8 @@ export interface Tutorial {
 
 export interface PlaylistTutorial extends Tutorial {
   isPlaylist: boolean;
+  // Whether or not the videos of this tutorial are also included in the youtubeEntries tree
+  includedVideos: boolean;
   // If the Tutorial is a playlist, it contains videos, so it has a dictionary where the keys are videos' ids
   playlistVideos: {
     [Id: string]: boolean;
@@ -62,7 +69,7 @@ export interface VideoTutorial extends Tutorial {
 
 export class Category {
   uid: string;
-  name: string = "New Category";
+  name = "New Category";
 
   tutorials: Tutorial[] = [];
 

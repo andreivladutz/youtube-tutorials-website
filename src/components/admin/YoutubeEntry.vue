@@ -1,38 +1,26 @@
 <template>
-  <el-card :body-style="{ display: 'flex' }" class="box-card">
-    <!-- <div slot="header" class="clearfix">
-      <span>
-        {{ tutorial.title }}
-        <i v-if="tutorial.isPlaylist">( playlist )</i>
-      </span>
-      <button
-        v-if="tutorial.isPlaylist"
-        style="float: right"
-        class="button"
-      >Show videos from playlist</button>
-    </div>-->
-
-    <label for="tornado-include">
+  <el-card :body-style="{ display: 'flex'}" class="box-card">
+    <label :for="tutorial.id">
       <figure
         :style="{
-        height: imgHeight,
+        height: img.height,
         width: 'auto',
-        lineHeight: imgHeight,
+        lineHeight: img.height,
       }"
         class="include-wrapper"
       >
-        <input id="tornado-include" type="checkbox" />
+        <input :id="tutorial.id" class="tornado-include" type="checkbox" v-model="isVisible" />
       </figure>
     </label>
 
-    <label for="tornado-include">
+    <label :for="tutorial.id">
       <lazy-img
         v-thumbnail
-        :imgUrl="imgUrl"
+        :imgUrl="img.url"
         :imgTitle="tutorial.title"
         :imgAlt="tutorial.title"
-        :width="imgWidth"
-        :height="imgHeight"
+        :width="img.width"
+        :height="img.height"
       />
     </label>
 
@@ -44,7 +32,7 @@
   import Vue, { PropType } from "vue";
   import LazyLoadImg from "../tools/LazyLoadImg.vue";
   import { Card } from "element-ui";
-  import { Tutorial } from "@/store/types";
+  import { Thumbnail, Tutorial } from "@/store/types";
 
   import { THUMBNAIL_WIDTH } from "@/CST";
 
@@ -55,24 +43,21 @@
         required: true
       }
     },
-    computed: {
-      imgUrl(): string {
-        return this.tutorial.thumbnail?.url as string;
-      },
-      imgRatio(): number {
-        if (!this.tutorial.thumbnail) {
-          return 1;
-        }
+    data() {
+      const th = this.tutorial.thumbnail as Thumbnail;
+      const img = {
+        url: th.url as string,
+        width: `${THUMBNAIL_WIDTH}px`,
+        height: `${(THUMBNAIL_WIDTH * th.height) / th.width}px`
+      };
 
-        return this.tutorial.thumbnail?.height / this.tutorial.thumbnail?.width;
-      },
-      imgWidth(): string {
-        return `${THUMBNAIL_WIDTH}px`;
-      },
-      imgHeight(): string {
-        return `${THUMBNAIL_WIDTH * this.imgRatio}px`;
-      }
+      return {
+        img,
+        /** Properties to be modified: */
+        isVisible: this.tutorial.isVisible
+      };
     },
+    computed: {},
     components: {
       "lazy-img": LazyLoadImg,
       "el-card": Card
@@ -109,7 +94,7 @@
     top: -0.25rem;
   }
 
-  #tornado-include {
+  .tornado-include {
     width: 1rem;
     height: 1rem;
 
@@ -121,7 +106,7 @@
     margin: 0;
   }
 
-  label[for="tornado-include"] {
+  label {
     padding-right: 0.5rem;
   }
 </style>

@@ -14,13 +14,10 @@
   import TheHeader from "@/components/TheHeader.vue";
   import TheFooter from "@/components/TheFooter.vue";
 
-  import LoadingIndicator from "@/components/tools/LoadingIndicator.vue";
-
   export default Vue.extend({
     components: {
       TheHeader,
-      TheFooter,
-      LoadingIndicator
+      TheFooter
     },
     mounted() {
       // Switch Template-related. To make the images visible
@@ -35,7 +32,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* text-align: center;
-                                      color: #2c3e50; */
+                                        color: #2c3e50; */
   }
 
   #loading-indicator-wrap {
@@ -44,16 +41,16 @@
   }
 
   /* 
-                                    #nav {
-                                      padding: 30px;
-                                    }
+                                      #nav {
+                                        padding: 30px;
+                                      }
 
-                                    #nav a {
-                                      font-weight: bold;
-                                      color: #2c3e50;
-                                    }
+                                      #nav a {
+                                        font-weight: bold;
+                                        color: #2c3e50;
+                                      }
 
-                                    #nav a.router-link-exact-active {
-                                      color: #42b983;
-                                    } */
+                                      #nav a.router-link-exact-active {
+                                        color: #42b983;
+                                      } */
 </style>

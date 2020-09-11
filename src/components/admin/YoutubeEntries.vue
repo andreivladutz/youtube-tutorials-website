@@ -1,6 +1,15 @@
 <template>
   <el-collapse v-model="activeNames">
-    <el-collapse-item v-for="tutorial in dateOrderedTuts" :key="tutorial.id" :name="tutorial.id">
+    <el-collapse-item
+      :class="[
+        (!tutorial['.newly-added'] && newlyAddedAnimation(tutorial))? 'newly-added' : '',  
+        tutorial['.newly-removed']? 'newly-removed' : ''  
+      ]"
+      :style="{ marginLeft: tutorial.isPlaylist? undefined : '5rem' }"
+      v-for="tutorial in orderedTutorials"
+      :key="tutorial.id"
+      :name="tutorial.id"
+    >
       <template slot="title">
         <div class="clearfix">
           <span>
@@ -9,14 +18,27 @@
           </span>
 
           <button
-            v-if="tutorial.isPlaylist && activeNames.includes(tutorial.id)"
+            v-if="playlistButtonVisible(tutorial)"
             class="button push-vids"
-            @click.stop="pushPlaylistVids"
-          >Add playlist videos</button>
+            @click.stop="fetchPlaylistVids(tutorial.id)"
+          >Fetch playlist videos</button>
+
+          <!-- If the videos have been fetched, show the remove button -->
+          <button
+            v-if="playlistButtonVisible(tutorial) && tutorial.includedVideos"
+            class="button push-vids"
+            @click.stop="removePlaylistVids(tutorial.id)"
+          >Remove playlist videos</button>
         </div>
       </template>
 
       <YoutubeEntry :tutorial="tutorial" />
+      <YoutubeEntries
+        v-if="tutorial.includedVideos"
+        :isRoot="false"
+        :tutorials="playlistVideosTutorials(tutorial.id)"
+        :newlyFetchedTuts="newlyFetchedTuts"
+      />
     </el-collapse-item>
   </el-collapse>
 </template>
@@ -25,18 +47,37 @@
   import Vue, { PropType } from "vue";
   import { Collapse, CollapseItem } from "element-ui";
   import YoutubeEntry from "./YoutubeEntry.vue";
-  import { Tutorial } from "@/store/types";
+  import {
+    PlaylistTutorial,
+    Tutorial,
+    TutorialsDictionary,
+    VideoTutorial
+  } from "@/store/types";
+  import { mapActions } from "vuex";
 
   export default Vue.extend({
+    name: "YoutubeEntries",
     props: {
+      // All tutorials (those fetched from youtube and those fetched from firebase)
       tutorials: {
-        type: Object as PropType<{ [Id: string]: Tutorial }>,
+        type: Object as PropType<TutorialsDictionary>,
+        required: true
+      },
+      // The tutorials just fetched from youtube in this session
+      newlyFetchedTuts: {
+        type: Object as PropType<TutorialsDictionary>,
         required: true
       },
       defaultOpen: {
         type: Boolean,
         default: false
-      }
+      },
+      // The root shows playlists, otherwise it shows videos
+      isRoot: {
+        type: Boolean,
+        default: true
+      },
+      loading: Boolean
     },
     components: {
       "el-collapse": Collapse,
@@ -45,11 +86,29 @@
       YoutubeEntry
     },
     computed: {
-      dateOrderedTuts(): Tutorial[] {
+      dateOrderedPlaylists(): Tutorial[] {
+        return Object.values(this.tutorials)
+          .filter(tutorial => (tutorial as PlaylistTutorial).isPlaylist)
+          .sort(
+            (a, b) =>
+              new Date(b.publishedAt).getTime() -
+              new Date(a.publishedAt).getTime()
+          );
+      },
+
+      positionOrderedVideos(): Tutorial[] {
         return Object.values(this.tutorials).sort(
-          (a, b) =>
-            new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+          (a, b) => (a as VideoTutorial).position - (b as VideoTutorial).position
         );
+      },
+
+      // Order the tutorials depending on what this component is showing (playlist or videos, that is, being a child)
+      orderedTutorials(): Tutorial[] {
+        if (this.isRoot) {
+          return this.dateOrderedPlaylists;
+        }
+
+        return this.positionOrderedVideos;
       }
     },
     data() {
@@ -60,13 +119,65 @@
       };
     },
     methods: {
-      pushPlaylistVids() {
-        console.log("PUSHED");
+      ...mapActions({
+        fetchVideosInPlaylist: "youtube/fetchVideosInPlaylist",
+        removeVideosInPlaylist: "removeVideosInPlaylist"
+      }),
+
+      // Fetch the videos for a playlist tutorial and show them
+      async fetchPlaylistVids(playlistId: string) {
+        this.$emit("update:loading", true);
+        await this.fetchVideosInPlaylist(playlistId);
+        this.$emit("update:loading", false);
+
+        const playlistTutorial = this.tutorials[playlistId] as PlaylistTutorial;
+
+        Vue.set(playlistTutorial, "includedVideos", true);
       },
+
+      // Fetch the videos for a playlist tutorial and show them
+      async removePlaylistVids(playlistId: string) {
+        const playlistTutorial = this.tutorials[playlistId] as PlaylistTutorial;
+        Vue.set(playlistTutorial, ".newly-removed", true);
+
+        await new Promise(resolve => setTimeout(() => resolve(), 300));
+
+        Vue.delete(playlistTutorial, ".newly-removed");
+
+        await this.removeVideosInPlaylist(playlistId);
+        playlistTutorial.includedVideos = false;
+      },
+
+      // Gets the dictionary of tutorials containing only the videos children of the given playlist
+      playlistVideosTutorials(playlistId: string): TutorialsDictionary {
+        console.log("GETTING DICTIONAR?Y");
+
+        const playlistTutorial = this.tutorials[playlistId] as PlaylistTutorial;
+        const videosTutorials = {} as TutorialsDictionary;
+
+        for (const videoId of Object.keys(playlistTutorial.playlistVideos)) {
+          videosTutorials[videoId] = this.tutorials[videoId];
+        }
+
+        return videosTutorials;
+      },
+
       openTutorial(tutorialId: string) {
         this.activeNames.push(tutorialId);
 
         return tutorialId;
+      },
+
+      // Show a playlist card's buttons if it is opened (not collapsed)
+      playlistButtonVisible(tutorial: PlaylistTutorial) {
+        return tutorial.isPlaylist && this.activeNames.includes(tutorial.id);
+      },
+
+      // Just add a quick border of a different color (for 300ms) to the parent component by adding it a class
+      newlyAddedAnimation(tutorial: Tutorial) {
+        setTimeout(() => Vue.set(tutorial, ".newly-added", true), 300);
+
+        return true;
       }
     },
     watch: {

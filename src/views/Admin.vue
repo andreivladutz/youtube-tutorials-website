@@ -17,7 +17,7 @@
   import { mapActions } from "vuex";
 
   import FormWrapper from "@/components/FormWrapper.vue";
-  import LoadingIndicator from "@/components/tools/LoadingIndicator.vue";
+
   import {
     FormWrapperParam,
     CustomFormData
@@ -26,8 +26,7 @@
 
   export default Vue.extend({
     components: {
-      FormWrapper,
-      LoadingIndicator
+      FormWrapper
     },
     data() {
       // Login Form config

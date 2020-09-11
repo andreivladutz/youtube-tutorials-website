@@ -5,6 +5,7 @@ import ThumbnailDir from "@/utils/thumbnailDirective";
 // eslint-disable-next-line
 // @ts-ignore
 import VueAgile from "vue-agile";
+import LoadingIndicator from "@/components/tools/LoadingIndicator.vue";
 
 import App from "./App.vue";
 import router from "./router";
@@ -15,6 +16,7 @@ import "./assets/scss/style.scss";
 
 Vue.directive("lazyload", LazyLoadDir);
 Vue.directive("thumbnail", ThumbnailDir);
+Vue.component("LoadingIndicator", LoadingIndicator);
 Vue.use(VueAgile);
 
 Vue.config.productionTip = false;
