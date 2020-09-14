@@ -23,18 +23,39 @@
         :height="img.height"
       />
     </label>
-
-    <div v-for="o in 4" :key="o" class="text item">{{ "List item " + o }}</div>
+    <div class="edit-wrapper" :style="{ height: img.height }">
+      <label>
+        <el-input
+          type="textarea"
+          placeholder="Custom description that's being displayed over the tutorial's thumbnail"
+          v-model="description"
+          :autosize="{ minRows: 8, maxRows: 12}"
+        ></el-input>
+      </label>
+      <hr />
+      <label>
+        Add the tutorial to one or more categories:
+        <el-select v-model="tutorialCategories" size="large" multiple placeholder="Choose category">
+          <el-option
+            v-for="category in categories"
+            :key="category.uid"
+            :value="category.uid"
+            :label="category.name"
+          ></el-option>
+        </el-select>
+      </label>
+    </div>
   </el-card>
 </template>
 
 <script lang="ts">
   import Vue, { PropType } from "vue";
   import LazyLoadImg from "../tools/LazyLoadImg.vue";
-  import { Card } from "element-ui";
-  import { Thumbnail, Tutorial } from "@/store/types";
+  import { Card, Select, Option, Input } from "element-ui";
+  import { AppStoreState, Thumbnail, Tutorial } from "@/store/types";
 
   import { THUMBNAIL_WIDTH } from "@/CST";
+  import { mapState } from "vuex";
 
   export default Vue.extend({
     props: {
@@ -54,26 +75,27 @@
       return {
         img,
         /** Properties to be modified: */
-        isVisible: this.tutorial.isVisible
+        isVisible: this.tutorial.isVisible,
+        description: this.tutorial.authorDescription || this.tutorial.description,
+        tutorialCategories: this.tutorial.categories
       };
     },
-    computed: {},
+    computed: {
+      ...mapState({
+        categories: state => Object.values((state as AppStoreState).categories)
+      })
+    },
     components: {
-      "lazy-img": LazyLoadImg,
-      "el-card": Card
+      LazyImg: LazyLoadImg,
+      ElCard: Card,
+      ElSelect: Select,
+      ElOption: Option,
+      ElInput: Input
     }
   });
 </script>
 
 <style scoped>
-  .text {
-    font-size: 14px;
-  }
-
-  .item {
-    margin-bottom: 18px;
-  }
-
   .clearfix:before,
   .clearfix:after {
     display: table;
@@ -108,5 +130,25 @@
 
   label {
     padding-right: 0.5rem;
+  }
+
+  hr {
+    margin: 0.5rem;
+  }
+
+  .edit-wrapper {
+    padding: 0;
+  }
+</style>
+
+<style>
+  .el-textarea__inner {
+    padding: 0;
+    min-height: 50%;
+    width: 100%;
+  }
+
+  .el-textarea {
+    width: 100%;
   }
 </style>

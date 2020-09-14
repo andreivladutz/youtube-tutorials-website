@@ -17,11 +17,14 @@ export interface AppStoreState {
   products: Product[];
   socialMedia: SocialMedia[];
 
+  categories: CategoriesDictionary;
+
   firebase?: FirebaseModuleState;
   youtube?: YoutubeModuleState;
 }
 
 export type TutorialsDictionary = Record<string, Tutorial>;
+export type CategoriesDictionary = Record<string, Category>;
 
 export interface Thumbnail {
   url: string;
@@ -46,7 +49,7 @@ export interface Tutorial {
   isVisible: boolean;
   // Every tutorial belongs to one or more categories
   // Keep their uids in an array
-  categories?: [];
+  categories?: string[];
 }
 
 export interface PlaylistTutorial extends Tutorial {
@@ -67,11 +70,18 @@ export interface VideoTutorial extends Tutorial {
   position: number;
 }
 
-export class Category {
+export interface CategoryType {
   uid: string;
-  name = "New Category";
+  name: string;
+  tutorials: string[];
+}
 
-  tutorials: Tutorial[] = [];
+export class Category implements CategoryType {
+  uid: string;
+
+  name = "New Category";
+  // The ids of the contained tutorials
+  tutorials: string[] = [];
 
   constructor(uid?: string) {
     if (!uid) {
@@ -91,6 +101,15 @@ export class Category {
     }
 
     return uid;
+  }
+
+  // Deep copy of a category
+  public static CopyCategory(categ: CategoryType) {
+    const newCategory = new Category(categ.uid);
+    newCategory.name = categ.name;
+    newCategory.tutorials = [...categ.tutorials];
+
+    return newCategory;
   }
 }
 

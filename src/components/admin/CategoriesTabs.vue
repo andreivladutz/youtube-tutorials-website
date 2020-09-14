@@ -32,7 +32,7 @@
         lazy
         closable
       >
-        <!-- <YoutubeEntry /> -->
+        <CategoryEntry :categories="categories" :categoryId="item.uid" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -42,8 +42,9 @@
   import Vue from "vue";
   import { Tabs, TabPane } from "element-ui";
   import YoutubeEntries from "./YoutubeEntries.vue";
+  import CategoryEntry from "./CategoryEntry.vue";
 
-  import { Tutorial, Category, YoutubeModuleState } from "@/store/types";
+  import { AppStoreState, Category } from "@/store/types";
   import { mapActions, mapGetters, mapState } from "vuex";
 
   export default Vue.extend({
@@ -51,23 +52,35 @@
       "el-tabs": Tabs,
       "el-tab-pane": TabPane,
 
-      YoutubeEntries
+      YoutubeEntries,
+      CategoryEntry
     },
     data() {
       return {
         editableTabsValue: "all",
-        editableTabs: [new Category()] as Category[],
-        loading: false
+        loading: false,
+
+        // After adding a new category watch for the prop change to switch to that tab
+        watchingNewCategory: false
       };
     },
     computed: {
-      ...mapState("youtube", {
-        newlyFetchedTuts: state => (state as YoutubeModuleState).tutorials
+      ...mapState({
+        newlyFetchedTuts: state => (state as AppStoreState).youtube?.tutorials,
+        categories: state => (state as AppStoreState).categories
       }),
-      ...mapGetters(["tutorials"])
+      ...mapGetters(["tutorials"]),
+
+      editableTabs(): Category[] {
+        return Object.values(this.categories);
+      }
     },
     methods: {
-      ...mapActions("youtube", ["fetchPlaylists"]),
+      ...mapActions({
+        fetchPlaylists: "youtube/fetchPlaylists",
+        createCategory: "createCategory",
+        removeCategory: "removeCategory"
+      }),
       async fetchNewPlaylists() {
         this.loading = true;
 
@@ -79,10 +92,9 @@
         for await (const _ of generator);
       },
       addTab() {
-        const newCategory = new Category();
-        this.editableTabs.push(newCategory);
+        this.createCategory();
 
-        this.editableTabsValue = newCategory.uid;
+        this.watchingNewCategory = true;
       },
       removeTab(targetName: string) {
         const tabs = this.editableTabs;
@@ -101,7 +113,16 @@
         }
 
         this.editableTabsValue = activeName;
-        this.editableTabs = tabs.filter(tab => tab.uid !== targetName);
+        this.removeCategory(targetName);
+      }
+    },
+    watch: {
+      editableTabs(newCategs) {
+        if (this.watchingNewCategory) {
+          this.editableTabsValue = newCategs[newCategs.length - 1].uid;
+
+          this.watchingNewCategory = false;
+        }
       }
     }
   });

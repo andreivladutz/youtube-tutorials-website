@@ -5,12 +5,11 @@ import firebaseModule from "./firebaseModule";
 import youtubeModule from "./youtubeModule";
 
 import {
-  Tutorial,
   Product,
   AppStoreState,
-  PlaylistResp,
-  ThumbnailResp,
   TutorialsDictionary,
+  CategoriesDictionary,
+  Category,
 } from "./types";
 import socialMedia from "./socialMedia";
 
@@ -45,6 +44,16 @@ export default new Vuex.Store<AppStoreState>({
       },
     ] as Product[],
     socialMedia,
+    categories: {} as CategoriesDictionary,
+  },
+  mutations: {
+    newCategory(state) {
+      const category = new Category();
+      Vue.set(state.categories, category.uid, category);
+    },
+    deleteCategory(state, categoryId: string) {
+      Vue.delete(state.categories, categoryId);
+    },
   },
   getters: {
     tutorials(state): TutorialsDictionary {
@@ -56,6 +65,12 @@ export default new Vuex.Store<AppStoreState>({
   },
 
   actions: {
+    createCategory({ commit }) {
+      commit("newCategory");
+    },
+    removeCategory({ commit }, categoryId: string) {
+      commit("deleteCategory", categoryId);
+    },
     // Remove the videos fetched for a playlist => in youtube and
     // TODO: from firebase
     removeVideosInPlaylist({ commit }, playlistId: string) {

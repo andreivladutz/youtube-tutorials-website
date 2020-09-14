@@ -44,6 +44,7 @@ export default {
 
           // Tutorials are by default hidden
           isVisible: false,
+          categories: [],
         };
 
         if (isPlaylists) {
