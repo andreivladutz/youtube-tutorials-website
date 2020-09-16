@@ -2,7 +2,7 @@
   <div>
     <el-input placeholder="Category's name" v-model="category.name">
       <template slot="prepend">
-        <button class="prepended_button">Change category name</button>
+        <button @click="rename" class="prepended_button">Change category name</button>
       </template>
     </el-input>
   </div>
@@ -13,6 +13,7 @@
   import { Input } from "element-ui";
 
   import { CategoriesDictionary, Category } from "@/store/types";
+  import { mapActions } from "vuex";
 
   export default Vue.extend({
     props: {
@@ -32,6 +33,15 @@
       return {
         category: Category.CopyCategory(this.categories[this.categoryId])
       };
+    },
+    methods: {
+      ...mapActions(["renameCategory"]),
+      rename() {
+        this.renameCategory({
+          categoryId: this.categoryId,
+          newName: this.category.name
+        });
+      }
     }
   });
 </script>

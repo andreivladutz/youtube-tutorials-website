@@ -93,21 +93,11 @@ export default {
         Vue.set(state.tutorials, tutorial.id, tutorial);
       }
     },
-
-    removeVideoTutorialsFromPlaylist(state, playlistId: string) {
-      const playlistTutorial = state.tutorials[playlistId] as PlaylistTutorial;
-
-      // Remove all video tutorials from the state first and then from the playlist
-      for (const videoId of Object.keys(playlistTutorial.playlistVideos)) {
-        Vue.delete(state.tutorials, videoId);
-        Vue.delete(playlistTutorial.playlistVideos, videoId);
-      }
-    },
   },
   actions: {
     // Fetches all the playlists for this channel that were created after the received date
     // Gets a timestamp, fetches and returns the most recent timestamp fetched
-    async *fetchPlaylists({ dispatch, rootState, commit }) {
+    async *fetchPlaylists({ state, dispatch, rootState, commit }) {
       if (!rootState.firebase?.channelId) {
         // First, get the api key from the database, then, also get the channel id
         await dispatch("firebase/getYoutubeCredentials", null, { root: true });
@@ -129,6 +119,18 @@ export default {
           isPlaylists: true,
         });
 
+        // After saving each tutorial in this fetched chunk, push it to the changes dictionary so it gets saved in the firebase db
+        for (const resp of playlistResp.items) {
+          // Save this newly fetched tutorial in the firebase db
+          commit(
+            "firebase/recordModifications",
+            {
+              modifiedObj: state.tutorials[resp.id],
+            },
+            { root: true }
+          );
+        }
+
         yield;
       }
 
@@ -149,7 +151,7 @@ export default {
     /**
      * Fetch the tutorial videos for the playlist with id @param playlistId
      */
-    async fetchVideosInPlaylist({ dispatch, commit }, playlistId) {
+    async fetchVideosInPlaylist({ state, dispatch, commit }, playlistId) {
       let playlistResp: YouTubePlaylistQueryResp;
 
       const videosGenerator: AsyncGenerator<YouTubePlaylistQueryResp> = await dispatch(
@@ -166,7 +168,29 @@ export default {
           responses: playlistResp.items,
           isPlaylists: false,
         });
+
+        // After saving each tutorial in this fetched chunk, push it to the changes dictionary so it gets saved in the firebase db
+        for (const resp of playlistResp.items) {
+          // Save this newly fetched tutorial in the firebase db
+          commit(
+            "firebase/recordModifications",
+            {
+              modifiedObj:
+                state.tutorials[resp.contentDetails?.videoId as string],
+            },
+            { root: true }
+          );
+        }
       }
+
+      /// Mark this playlist tutorial as modified in the firebase db
+      commit(
+        "firebase/recordModifications",
+        {
+          modifiedObj: state.tutorials[playlistId],
+        },
+        { root: true }
+      );
     },
 
     //

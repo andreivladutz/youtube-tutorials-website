@@ -5,8 +5,15 @@ export interface FirebaseModuleState {
   channelId: string;
 
   tutorials: TutorialsDictionary;
+  changes: FirebaseModifications;
 
   isAdmin: boolean;
+}
+
+// Store the reference to the updated object. e.g. { `tutorials/${tutorialId}`: tutorialRef }
+export interface FirebaseModifications {
+  // The modification is null if the property is being removed
+  [Path: string]: Tutorial | Category | null;
 }
 
 export interface YoutubeModuleState {
@@ -49,7 +56,7 @@ export interface Tutorial {
   isVisible: boolean;
   // Every tutorial belongs to one or more categories
   // Keep their uids in an array
-  categories?: string[];
+  categories: string[];
 }
 
 export interface PlaylistTutorial extends Tutorial {

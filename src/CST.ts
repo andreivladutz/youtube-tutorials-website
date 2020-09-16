@@ -73,4 +73,5 @@ export const THUMBNAIL_WIDTH = 480;
 // The thumbnail height after the polygon clip-path cut
 export const THUMBNAIL_HEIGHT_CUT = 1 - 0.26; // (13% cut on each side)
 
-export const REALTIME_DB = {};
+export const CATG_PREFIX = "categories";
+export const TUT_PREFIX = "tutorials";

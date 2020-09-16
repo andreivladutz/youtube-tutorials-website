@@ -5,8 +5,13 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
 
-import { FIREBASE_CFG } from "../CST";
-import { FirebaseModuleState, AppStoreState } from "./types";
+import { CATG_PREFIX, FIREBASE_CFG, TUT_PREFIX } from "../CST";
+import {
+  FirebaseModuleState,
+  AppStoreState,
+  Category,
+  Tutorial,
+} from "./types";
 
 firebase.initializeApp(FIREBASE_CFG);
 const db = firebase.database();
@@ -48,6 +53,8 @@ export default {
     channelId: "",
 
     tutorials: {},
+    // Push the updates to firebase
+    changes: {},
 
     // After successful login as admin, will be set to true
     isAdmin: false,
@@ -105,6 +112,21 @@ export default {
       }
 
       ref[path[path.length - 1]] = value;
+    },
+
+    // Record any modifications to the tutorials / categories / etc
+    recordModifications(
+      state,
+      {
+        modifiedObj,
+        deleted,
+      }: { modifiedObj: Tutorial | Category; deleted?: boolean }
+    ) {
+      const id =
+        modifiedObj instanceof Category ? modifiedObj.uid : modifiedObj.id;
+      const prefix = modifiedObj instanceof Category ? CATG_PREFIX : TUT_PREFIX;
+
+      state.changes[`${prefix}/${id}`] = deleted ? null : modifiedObj;
     },
 
     adminAuthStateChange(state, newState: boolean) {

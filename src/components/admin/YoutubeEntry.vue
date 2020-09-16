@@ -29,21 +29,26 @@
           type="textarea"
           placeholder="Custom description that's being displayed over the tutorial's thumbnail"
           v-model="description"
+          @blur="onDescriptionBlur"
           :autosize="{ minRows: 8, maxRows: 12}"
         ></el-input>
       </label>
       <hr />
-      <label>
-        Add the tutorial to one or more categories:
-        <el-select v-model="tutorialCategories" size="large" multiple placeholder="Choose category">
-          <el-option
-            v-for="category in categories"
-            :key="category.uid"
-            :value="category.uid"
-            :label="category.name"
-          ></el-option>
-        </el-select>
-      </label>
+      <label>Add the tutorial to one or more categories:</label>
+      <el-select
+        v-model="tutorialCategories"
+        style="width: 100%"
+        size="large"
+        multiple
+        placeholder="Choose category"
+      >
+        <el-option
+          v-for="category in categories"
+          :key="category.uid"
+          :value="category.uid"
+          :label="category.name"
+        ></el-option>
+      </el-select>
     </div>
   </el-card>
 </template>
@@ -55,7 +60,7 @@
   import { AppStoreState, Thumbnail, Tutorial } from "@/store/types";
 
   import { THUMBNAIL_WIDTH } from "@/CST";
-  import { mapState } from "vuex";
+  import { mapActions, mapState } from "vuex";
 
   export default Vue.extend({
     props: {
@@ -76,14 +81,68 @@
         img,
         /** Properties to be modified: */
         isVisible: this.tutorial.isVisible,
-        description: this.tutorial.authorDescription || this.tutorial.description,
-        tutorialCategories: this.tutorial.categories
+        description: this.tutorial.authorDescription || this.tutorial.description
       };
     },
     computed: {
       ...mapState({
         categories: state => Object.values((state as AppStoreState).categories)
-      })
+      }),
+
+      tutorialCategories: {
+        get(): string[] {
+          return [...this.tutorial.categories];
+        },
+        set(categoriesArray: string[]) {
+          // Those categories that were in the tutorialCategories but aren't anymore
+          const removedCategories = this.tutorialCategories.filter(
+            id => !categoriesArray.includes(id)
+          );
+
+          // Those categories that weren't and now are
+          const addedCategories = categoriesArray.filter(
+            id => !this.tutorialCategories.includes(id)
+          );
+
+          if (removedCategories.length) {
+            this.popCategoryFromTutorial({
+              tutorialId: this.tutorial.id,
+              categoryId: removedCategories[0]
+            });
+          }
+
+          if (addedCategories.length) {
+            this.pushCategoryToTutorial({
+              tutorialId: this.tutorial.id,
+              categoryId: addedCategories[0]
+            });
+          }
+        }
+      }
+    },
+    methods: {
+      ...mapActions([
+        "pushCategoryToTutorial",
+        "popCategoryFromTutorial",
+        "updateTutorial"
+      ]),
+      // Update the tutorial via the updateTutorial action which commits mutations
+      commitUpdate() {
+        this.updateTutorial({
+          tutorialId: this.tutorial.id,
+          isVisible: this.isVisible,
+          authorDescription: this.description
+        });
+      },
+
+      onDescriptionBlur() {
+        this.commitUpdate();
+      }
+    },
+    watch: {
+      isVisible() {
+        this.commitUpdate();
+      }
     },
     components: {
       LazyImg: LazyLoadImg,

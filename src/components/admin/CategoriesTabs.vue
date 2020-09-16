@@ -58,10 +58,7 @@
     data() {
       return {
         editableTabsValue: "all",
-        loading: false,
-
-        // After adding a new category watch for the prop change to switch to that tab
-        watchingNewCategory: false
+        loading: false
       };
     },
     computed: {
@@ -91,10 +88,10 @@
 
         for await (const _ of generator);
       },
-      addTab() {
-        this.createCategory();
+      async addTab() {
+        const category = (await this.createCategory()) as Category;
 
-        this.watchingNewCategory = true;
+        this.editableTabsValue = category.uid;
       },
       removeTab(targetName: string) {
         const tabs = this.editableTabs;
@@ -114,15 +111,6 @@
 
         this.editableTabsValue = activeName;
         this.removeCategory(targetName);
-      }
-    },
-    watch: {
-      editableTabs(newCategs) {
-        if (this.watchingNewCategory) {
-          this.editableTabsValue = newCategs[newCategs.length - 1].uid;
-
-          this.watchingNewCategory = false;
-        }
       }
     }
   });

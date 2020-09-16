@@ -1,5 +1,5 @@
 import Vue from "vue";
-import Vuex from "vuex";
+import Vuex, { Commit } from "vuex";
 
 import firebaseModule from "./firebaseModule";
 import youtubeModule from "./youtubeModule";
@@ -10,10 +10,37 @@ import {
   TutorialsDictionary,
   CategoriesDictionary,
   Category,
+  Tutorial,
+  PlaylistTutorial,
 } from "./types";
 import socialMedia from "./socialMedia";
 
 Vue.use(Vuex);
+
+// Get a tutorial's reference having tutorialId whether it is inside the yt module or the firebase module
+function getTutorialReference(state: AppStoreState, tutorialId: string) {
+  return (state.youtube?.tutorials[tutorialId] ||
+    state.firebase?.tutorials[tutorialId]) as Tutorial;
+}
+
+// Payloads that contain a tutorialId or categoryId prop usually modify that tutorial / category
+function recordModif(
+  state: AppStoreState,
+  commit: Commit,
+  payload: { tutorialId?: string; categoryId?: string }
+) {
+  if (payload.categoryId) {
+    commit("firebase/recordModifications", {
+      modifiedObj: state.categories[payload.categoryId],
+    });
+  }
+
+  if (payload.tutorialId) {
+    commit("firebase/recordModifications", {
+      modifiedObj: getTutorialReference(state, payload.tutorialId),
+    });
+  }
+}
 
 export default new Vuex.Store<AppStoreState>({
   modules: {
@@ -47,12 +74,92 @@ export default new Vuex.Store<AppStoreState>({
     categories: {} as CategoriesDictionary,
   },
   mutations: {
-    newCategory(state) {
-      const category = new Category();
+    newCategory(state, category: Category) {
       Vue.set(state.categories, category.uid, category);
     },
     deleteCategory(state, categoryId: string) {
       Vue.delete(state.categories, categoryId);
+    },
+    renameCategory(
+      state,
+      { categoryId, newName }: { categoryId: string; newName: string }
+    ) {
+      const category = state.categories[categoryId];
+
+      category.name = newName;
+    },
+
+    // Add a categoryId to a tutorial's categories and the tutorialId to the category's tutorials
+    addCategoryToTutorial(
+      state,
+      { tutorialId, categoryId }: { tutorialId: string; categoryId: string }
+    ) {
+      const tutorial = getTutorialReference(state, tutorialId);
+      const category = state.categories[categoryId];
+
+      tutorial.categories.push(categoryId);
+      category.tutorials.push(tutorialId);
+    },
+    // Remove the category from the tutorial's categories and replace the array
+    removeCategoryFromTutorial(
+      state,
+      { tutorialId, categoryId }: { tutorialId: string; categoryId: string }
+    ) {
+      const tutorial = getTutorialReference(state, tutorialId);
+      const poppedCategories = tutorial.categories.filter(
+        id => id !== categoryId
+      );
+
+      const category = state.categories[categoryId];
+      const poppedTutorials = category.tutorials.filter(
+        id => id !== tutorialId
+      );
+
+      // Remove the category from the tutorial's categoires
+      Vue.set(tutorial, "categories", poppedCategories);
+      // Also remove the tutorial from the category
+      Vue.set(category, "tutorials", poppedTutorials);
+    },
+    // Update any primtive type field of a tutorial
+    updateTutorial(
+      state,
+      {
+        tutorialId,
+        isVisible,
+        authorDescription,
+      }: { tutorialId: string; isVisible: boolean; authorDescription: string }
+    ) {
+      const tutorial = getTutorialReference(state, tutorialId);
+
+      tutorial.isVisible = isVisible;
+      tutorial.authorDescription = authorDescription;
+    },
+
+    removeVideoTutorialsFromPlaylist(state, playlistId: string) {
+      const playlistTutorial = getTutorialReference(
+        state,
+        playlistId
+      ) as PlaylistTutorial;
+
+      // Remove all video tutorials from the state first and then from the playlist
+      for (const videoId of Object.keys(playlistTutorial.playlistVideos)) {
+        // Remove the tutorial if it's fetched from firebase
+        if (
+          state.firebase?.tutorials &&
+          state.firebase?.tutorials[playlistId]
+        ) {
+          Vue.delete(state.firebase?.tutorials, videoId);
+        }
+        // Also remove the tutorial if it's fetched from youtube
+        else if (
+          state.youtube?.tutorials &&
+          state.youtube?.tutorials[playlistId]
+        ) {
+          Vue.delete(state.youtube?.tutorials, videoId);
+        }
+
+        Vue.delete(playlistTutorial.playlistVideos, videoId);
+      }
     },
   },
   getters: {
@@ -66,15 +173,92 @@ export default new Vuex.Store<AppStoreState>({
 
   actions: {
     createCategory({ commit }) {
-      commit("newCategory");
+      const category = new Category();
+      commit("newCategory", category);
+
+      commit("firebase/recordModifications", {
+        modifiedObj: category,
+      });
+
+      return category;
     },
-    removeCategory({ commit }, categoryId: string) {
+    removeCategory({ state, commit, dispatch }, categoryId: string) {
+      // Also, remove the category from all tutorials
+      const category = state.categories[categoryId];
+      for (const tutorialId of category.tutorials) {
+        dispatch("popCategoryFromTutorial", { tutorialId, categoryId });
+      }
+
       commit("deleteCategory", categoryId);
+
+      commit("firebase/recordModifications", {
+        modifiedObj: category,
+        deleted: true,
+      });
     },
-    // Remove the videos fetched for a playlist => in youtube and
-    // TODO: from firebase
-    removeVideosInPlaylist({ commit }, playlistId: string) {
-      commit("youtube/removeVideoTutorialsFromPlaylist", playlistId);
+    renameCategory(
+      { state, commit },
+      payload: { categoryId: string; newName: string }
+    ) {
+      commit("renameCategory", payload);
+
+      recordModif(state, commit, payload);
+    },
+
+    pushCategoryToTutorial(
+      { state, commit },
+      payload: { categoryId: string; tutorialId: string }
+    ) {
+      commit("addCategoryToTutorial", payload);
+
+      // Record modifications to both the category and the tutorial
+      recordModif(state, commit, payload);
+    },
+    popCategoryFromTutorial(
+      { state, commit },
+      payload: { categoryId: string; tutorialId: string }
+    ) {
+      commit("removeCategoryFromTutorial", payload);
+
+      // Record modifications to both the category and the tutorial
+      recordModif(state, commit, payload);
+    },
+    // Update any primtive type field of a tutorial
+    updateTutorial(
+      { commit, state },
+      payload: {
+        tutorialId: string;
+        isVisible: boolean;
+        authorDescription: string;
+      }
+    ) {
+      commit("updateTutorial", payload);
+
+      // Record modifications to the tutorial
+      recordModif(state, commit, payload);
+    },
+
+    // Remove the videos fetched for a playlist => in youtube or from firebase
+    removeVideosInPlaylist({ state, commit }, playlistId: string) {
+      const playlistTutorial = getTutorialReference(
+        state,
+        playlistId
+      ) as PlaylistTutorial;
+
+      // The playlist is losing its videos. Mark as modified
+      commit("firebase/recordModifications", {
+        modifiedObj: playlistTutorial,
+      });
+
+      // Mark each video in the playlist as deleted
+      for (const videoId of Object.keys(playlistTutorial.playlistVideos)) {
+        commit("firebase/recordModifications", {
+          modifiedObj: getTutorialReference(state, videoId),
+          deleted: true,
+        });
+      }
+
+      commit("removeVideoTutorialsFromPlaylist", playlistId);
     },
   },
 });
