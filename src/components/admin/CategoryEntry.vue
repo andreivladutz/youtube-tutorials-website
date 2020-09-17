@@ -1,19 +1,55 @@
 <template>
   <div>
-    <el-input placeholder="Category's name" v-model="category.name">
-      <template slot="prepend">
-        <button @click="rename" class="prepended_button">Change category name</button>
-      </template>
-    </el-input>
+    <!-- The Header Name Change -->
+    <form @submit.prevent="rename">
+      <el-input required clearable placeholder="Category's name" v-model="category.name">
+        <template slot="prepend">
+          <button class="prepended_button">Change category name</button>
+        </template>
+      </el-input>
+    </form>
+
+    <draggable
+      tag="el-collapse"
+      v-model="categoryTuts"
+      draggable=".item"
+      :component-data="{ 'v-model': activeNames }"
+    >
+      <el-collapse-item
+        v-for="tutorialId in categoryTuts"
+        class="item"
+        :key="tutorialId"
+        :name="tutorialId"
+      >
+        <template slot="title">
+          <span>
+            {{ getTutorial(tutorialId).title }}
+            <i
+              v-if="getTutorial(tutorialId).isPlaylist"
+            >( playlist )</i>
+          </span>
+        </template>
+
+        <YoutubeEntry :tutorial="getTutorial(tutorialId)" />
+      </el-collapse-item>
+    </draggable>
   </div>
 </template>
 
 <script lang="ts">
   import Vue, { PropType } from "vue";
+  import draggable from "vuedraggable";
   import { Input } from "element-ui";
 
-  import { CategoriesDictionary, Category } from "@/store/types";
-  import { mapActions } from "vuex";
+  import YoutubeEntry from "@/components/admin/YoutubeEntry.vue";
+
+  import {
+    CategoriesDictionary,
+    Category,
+    Tutorial,
+    TutorialsDictionary
+  } from "@/store/types";
+  import { mapActions, mapGetters } from "vuex";
 
   export default Vue.extend({
     props: {
@@ -27,20 +63,42 @@
       }
     },
     components: {
-      ElInput: Input
+      ElInput: Input,
+      draggable,
+      YoutubeEntry
     },
     data() {
       return {
-        category: Category.CopyCategory(this.categories[this.categoryId])
+        category: Category.CopyCategory(this.categories[this.categoryId]),
+        activeNames: [] as string[]
       };
     },
+    computed: {
+      ...(mapGetters(["tutorials"]) as { tutorials: () => TutorialsDictionary }),
+
+      categoryTuts: {
+        get(): string[] {
+          return this.categories[this.categoryId].tutorials;
+        },
+        set(reorderedTuts: string[]) {
+          this.reorderCategoryTutorials({
+            categoryId: this.categoryId,
+            reorderedTuts
+          });
+        }
+      }
+    },
     methods: {
-      ...mapActions(["renameCategory"]),
+      ...mapActions(["renameCategory", "reorderCategoryTutorials"]),
       rename() {
         this.renameCategory({
           categoryId: this.categoryId,
           newName: this.category.name
         });
+      },
+
+      getTutorial(tutorialId: string): Tutorial {
+        return this.tutorials[tutorialId];
       }
     }
   });

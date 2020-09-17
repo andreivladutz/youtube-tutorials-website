@@ -3,13 +3,9 @@
     <TheHero />
     <TheFeatures />
 
-    <section class="section">
-      <div class="container">
-        <div class="section-inner has-bottom-divider">
-          <TutorialsAnim />
-        </div>
-      </div>
-    </section>
+    <section-wrapper>
+      <TutorialsAnim />
+    </section-wrapper>
 
     <TheContact />
   </main>
@@ -19,11 +15,13 @@
   import Vue from "vue";
   import TheHero from "@/components/TheHero.vue";
   import TheFeatures from "@/components/TheFeatures.vue";
+  import SectionWrapper from "@/components/tools/SectionWrapper.vue";
 
   export default Vue.extend({
     components: {
       TheHero,
       TheFeatures,
+      SectionWrapper,
       TutorialsAnim: () => import("@/components/TutorialsAnim.vue"),
       TheContact: () => import("@/components/TheContact.vue")
     }

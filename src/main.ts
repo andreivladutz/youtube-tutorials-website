@@ -7,6 +7,8 @@ import ThumbnailDir from "@/utils/thumbnailDirective";
 import VueAgile from "vue-agile";
 import LoadingIndicator from "@/components/tools/LoadingIndicator.vue";
 
+import { Collapse, CollapseItem } from "element-ui";
+
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
@@ -16,11 +18,15 @@ import "./assets/scss/style.scss";
 
 Vue.directive("lazyload", LazyLoadDir);
 Vue.directive("thumbnail", ThumbnailDir);
+
 Vue.component("LoadingIndicator", LoadingIndicator);
 Vue.use(VueAgile);
 
-Vue.config.productionTip = false;
 Vue.prototype.$ELEMENT = { size: "large", zIndex: 3000 };
+Vue.use(Collapse);
+Vue.use(CollapseItem);
+
+Vue.config.productionTip = false;
 
 export interface RootVueApp extends Vue {
   loading: boolean;

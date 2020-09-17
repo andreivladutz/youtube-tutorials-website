@@ -88,6 +88,17 @@ export default new Vuex.Store<AppStoreState>({
 
       category.name = newName;
     },
+    reorderCategoryTuts(
+      state,
+      {
+        categoryId,
+        reorderedTuts,
+      }: { categoryId: string; reorderedTuts: string[] }
+    ) {
+      const category = state.categories[categoryId];
+
+      Vue.set(category, "tutorials", reorderedTuts);
+    },
 
     // Add a categoryId to a tutorial's categories and the tutorialId to the category's tutorials
     addCategoryToTutorial(
@@ -131,8 +142,8 @@ export default new Vuex.Store<AppStoreState>({
     ) {
       const tutorial = getTutorialReference(state, tutorialId);
 
-      tutorial.isVisible = isVisible;
-      tutorial.authorDescription = authorDescription;
+      Vue.set(tutorial, "isVisible", isVisible);
+      Vue.set(tutorial, "authorDescription", authorDescription);
     },
 
     removeVideoTutorialsFromPlaylist(state, playlistId: string) {
@@ -201,6 +212,14 @@ export default new Vuex.Store<AppStoreState>({
       payload: { categoryId: string; newName: string }
     ) {
       commit("renameCategory", payload);
+
+      recordModif(state, commit, payload);
+    },
+    reorderCategoryTutorials(
+      { state, commit },
+      payload: { categoryId: string; reorderedTuts: string[] }
+    ) {
+      commit("reorderCategoryTuts", payload);
 
       recordModif(state, commit, payload);
     },

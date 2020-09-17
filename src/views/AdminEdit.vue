@@ -3,7 +3,9 @@
     <EditNavbar @sign-out="signOutAndRedirect" />
     <TheHero />
 
-    <YoutubeTutsEdit />
+    <section-wrapper>
+      <CategoriesTabs />
+    </section-wrapper>
 
     <TheContact />
   </main>
@@ -14,8 +16,10 @@
   import EditNavbar from "@/components/admin/EditNavbar.vue";
   import TheHero from "@/components/TheHero.vue";
 
-  import YoutubeTutsEdit from "@/components/admin/YoutubeTutsEdit.vue";
   import TheContact from "@/components/TheContact.vue";
+
+  import SectionWrapper from "@/components/tools/SectionWrapper.vue";
+  import CategoriesTabs from "@/components/admin/CategoriesTabs.vue";
 
   import { mapActions, mapState } from "vuex";
   import { FirebaseModuleState } from "@/store/types";
@@ -24,9 +28,11 @@
   export default Vue.extend({
     components: {
       TheHero,
-      YoutubeTutsEdit,
       TheContact,
-      EditNavbar
+      EditNavbar,
+
+      SectionWrapper,
+      CategoriesTabs
     },
     data() {
       return {
