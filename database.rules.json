@@ -1,6 +1,23 @@
 {
   "rules": {
-    ".read": true,
-    ".write": false
+    "apiKey": {
+      ".read": "root.child('admins').hasChild(auth.uid)"
+    },
+    "channelId": {
+      ".read": "true"
+    },
+    "tutorials": {
+      ".read": "true",
+      ".write": "root.child('admins').hasChild(auth.uid)"
+    },
+    "categories": {
+      ".read": "true",
+      ".write": "root.child('admins').hasChild(auth.uid)"
+    },
+
+    "messages": {
+      ".write": "true",
+      ".read": "root.child('admins').hasChild(auth.uid)"
+    }
   }
 }
