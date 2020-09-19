@@ -1,4 +1,5 @@
 /** All logic related to firebase */
+import Vue from "vue";
 import { Module, Commit } from "vuex";
 
 import * as firebase from "firebase/app";
@@ -11,6 +12,8 @@ import {
   AppStoreState,
   Category,
   Tutorial,
+  FirebaseModifications,
+  PlaylistTutorial,
 } from "./types";
 
 firebase.initializeApp(FIREBASE_CFG);
@@ -53,6 +56,7 @@ export default {
     channelId: "",
 
     tutorials: {},
+    categories: {},
     // Push the updates to firebase
     changes: {},
 
@@ -66,6 +70,22 @@ export default {
         mapFirebaseToState(["apiKey"], false, commit),
         mapFirebaseToState(["channelId"], false, commit),
       ]);
+    },
+
+    // Fetch the tutorials and categories from the firebase db
+    async fetchFromFirebase({ state, commit, dispatch }) {
+      await Promise.all([
+        mapFirebaseToState(["tutorials"], false, commit),
+        mapFirebaseToState(["categories"], false, commit),
+      ]);
+
+      commit("fixFetchedItems");
+
+      for (const categoryLike of Object.values(state.categories)) {
+        dispatch("addFetchedCategory", Category.CopyCategory(categoryLike), {
+          root: true,
+        });
+      }
     },
 
     async signOut() {
@@ -98,20 +118,78 @@ export default {
     ) {
       return firebase.auth().signInWithEmailAndPassword(email, pass);
     },
+
+    // Save all the accumulated changes to the firebase db
+    async saveChangesToDb({ state, commit }) {
+      const updates = {} as FirebaseModifications;
+
+      // Remove all the keys that have illegal characters for saving in firebase
+      for (const [path, objRef] of Object.entries(state.changes)) {
+        if (objRef === null) {
+          updates[path] = null;
+          continue;
+        }
+
+        const updatedObj = { ...objRef };
+
+        for (const key in updatedObj) {
+          if (key.startsWith(".")) {
+            // eslint-disable-next-line
+            // @ts-ignore
+            delete updatedObj[key];
+          }
+        }
+
+        updates[path] = updatedObj as Tutorial | Category | null;
+      }
+
+      await db.ref().update(updates);
+
+      commit("clearModifications");
+    },
+  },
+  getters: {
+    // Determine if there are any unsaved ch.
+    hasUnsavedChanges(state) {
+      return Object.keys(state.changes).length > 0;
+    },
   },
   mutations: {
     // Update the state at any path e.g. ["key1", "key2", ...]
     updateStateValue(
       state,
+      // eslint-disable-next-line
       { path, value }: { path: (keyof FirebaseModuleState)[]; value: any }
     ) {
+      // eslint-disable-next-line
       let ref: any = state;
 
       for (const key of path.slice(0, -1)) {
         ref = ref[key];
       }
 
-      ref[path[path.length - 1]] = value;
+      Vue.set(ref, path[path.length - 1], value);
+    },
+
+    // Fix the fetched tutorials and categories e.g. if they had empty array before pushing to firebase
+    // Then the fetched items would have no array set
+    fixFetchedItems(state) {
+      for (const tutorial of Object.values(state.tutorials)) {
+        if (!tutorial.categories) {
+          Vue.set(tutorial, "categories", []);
+        }
+
+        const plyTutorial = tutorial as PlaylistTutorial;
+        if (plyTutorial.isPlaylist && !plyTutorial.playlistVideos) {
+          Vue.set(tutorial, "playlistVideos", {});
+        }
+      }
+
+      for (const category of Object.values(state.categories)) {
+        if (!category.tutorials) {
+          category.tutorials = [];
+        }
+      }
     },
 
     // Record any modifications to the tutorials / categories / etc
@@ -126,7 +204,11 @@ export default {
         modifiedObj instanceof Category ? modifiedObj.uid : modifiedObj.id;
       const prefix = modifiedObj instanceof Category ? CATG_PREFIX : TUT_PREFIX;
 
-      state.changes[`${prefix}/${id}`] = deleted ? null : modifiedObj;
+      Vue.set(state.changes, `${prefix}/${id}`, deleted ? null : modifiedObj);
+    },
+    // Clear all recorded modifications after the changes have been pushed to the db
+    clearModifications(state) {
+      Vue.set(state, "changes", {});
     },
 
     adminAuthStateChange(state, newState: boolean) {

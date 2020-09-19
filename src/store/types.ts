@@ -5,6 +5,8 @@ export interface FirebaseModuleState {
   channelId: string;
 
   tutorials: TutorialsDictionary;
+  // An index of CategoryTypes to be transformed to Category objects
+  categories: Record<string, CategoryType>;
   changes: FirebaseModifications;
 
   isAdmin: boolean;

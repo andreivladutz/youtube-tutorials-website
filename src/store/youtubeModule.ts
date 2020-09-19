@@ -12,6 +12,7 @@ import {
   VideoTutorial,
 } from "./types";
 import CST from "@/CST";
+import { getTutorialReference } from "./utils";
 
 export default {
   namespaced: true,
@@ -28,10 +29,10 @@ export default {
       state,
       {
         responses,
-        isPlaylists,
+        playlistParent,
       }: {
         responses: PlaylistResp[];
-        isPlaylists: boolean;
+        playlistParent: PlaylistTutorial;
       }
     ) {
       for (const response of responses) {
@@ -47,6 +48,9 @@ export default {
           categories: [],
         };
 
+        // If there isn't any provided playlistParent then interpret the responses as playlists
+        const isPlaylists = !playlistParent;
+
         if (isPlaylists) {
           // If the tutorials are playlists manage that case
           (tutorial as PlaylistTutorial).isPlaylist = isPlaylists;
@@ -60,13 +64,11 @@ export default {
             .position as number;
 
           // Save the playlist's id
-          const playlistId = response.snippet.playlistId as string;
-          (tutorial as VideoTutorial).playlistId = playlistId;
+          // const playlistId = response.snippet.playlistId as string;
+          (tutorial as VideoTutorial).playlistId = playlistParent.id;
 
           // Save this tutorial as part of its playlist
-          (state.tutorials[playlistId] as PlaylistTutorial).playlistVideos[
-            tutorial.id
-          ] = true;
+          playlistParent.playlistVideos[tutorial.id] = true;
         }
 
         let thumbnailObject: ThumbnailResp = {
@@ -116,7 +118,6 @@ export default {
       for await (playlistResp of playlistGenerator) {
         commit("saveTutorials", {
           responses: playlistResp.items,
-          isPlaylists: true,
         });
 
         // After saving each tutorial in this fetched chunk, push it to the changes dictionary so it gets saved in the firebase db
@@ -151,7 +152,10 @@ export default {
     /**
      * Fetch the tutorial videos for the playlist with id @param playlistId
      */
-    async fetchVideosInPlaylist({ state, dispatch, commit }, playlistId) {
+    async fetchVideosInPlaylist(
+      { state, rootState, dispatch, commit },
+      playlistId
+    ) {
       let playlistResp: YouTubePlaylistQueryResp;
 
       const videosGenerator: AsyncGenerator<YouTubePlaylistQueryResp> = await dispatch(
@@ -162,11 +166,14 @@ export default {
         }
       );
 
+      // The playlist can be in this module (just fetched from youtube) or fetched by firebase
+      const playlistParent = getTutorialReference(rootState, playlistId);
+
       // Fetch chunks of playlists' VIDEOS and save it
       for await (playlistResp of videosGenerator) {
         commit("saveTutorials", {
           responses: playlistResp.items,
-          isPlaylists: false,
+          playlistParent,
         });
 
         // After saving each tutorial in this fetched chunk, push it to the changes dictionary so it gets saved in the firebase db
@@ -187,7 +194,7 @@ export default {
       commit(
         "firebase/recordModifications",
         {
-          modifiedObj: state.tutorials[playlistId],
+          modifiedObj: playlistParent,
         },
         { root: true }
       );

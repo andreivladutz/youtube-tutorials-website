@@ -97,6 +97,9 @@
 
       tutorialCategories: {
         get(): string[] {
+          if (!this.tutorial.categories) {
+            return [];
+          }
           return [...this.tutorial.categories];
         },
         set(categoriesArray: string[]) {

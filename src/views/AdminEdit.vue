@@ -21,7 +21,7 @@
   import SectionWrapper from "@/components/tools/SectionWrapper.vue";
   import CategoriesTabs from "@/components/admin/CategoriesTabs.vue";
 
-  import { mapActions, mapState } from "vuex";
+  import { mapActions, mapGetters, mapState } from "vuex";
   import { FirebaseModuleState } from "@/store/types";
   import { RootVueApp } from "@/main";
 
@@ -36,7 +36,6 @@
     },
     data() {
       return {
-        isSaved: false,
         // This flag tells the beforeRouteLeave hook to sign out the admin user
         shouldSignOut: false
       };
@@ -44,6 +43,9 @@
     computed: {
       ...mapState("firebase", {
         isAdmin: state => (state as FirebaseModuleState).isAdmin
+      }),
+      ...mapGetters({
+        hasUnsavedChanges: "firebase/hasUnsavedChanges"
       })
     },
     methods: {
@@ -68,7 +70,7 @@
       }
 
       let answer = true;
-      if (!this.isSaved) {
+      if (this.hasUnsavedChanges) {
         answer = window.confirm(
           "Are you sure you want to leave? Any unsaved changes will be lost!"
         );

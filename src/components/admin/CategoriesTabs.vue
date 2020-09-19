@@ -2,6 +2,12 @@
   <div class="tabs" :style="{userSelect: 'none'}">
     <div style="margin-bottom: 20px;">
       <button class="button button-primary" @click="addTab">Add Category</button>
+      <button
+        style="margin-left: 1rem"
+        v-if="hasUnsavedChanges"
+        class="button"
+        @click="saveChanges"
+      >Save Changes</button>
     </div>
     <el-tabs v-model="editableTabsValue" type="card" @tab-remove="removeTab">
       <el-tab-pane label="All playlists / videos" :closable="false" name="all">
@@ -66,7 +72,10 @@
         newlyFetchedTuts: state => (state as AppStoreState).youtube?.tutorials,
         categories: state => (state as AppStoreState).categories
       }),
-      ...mapGetters(["tutorials"]),
+      ...mapGetters({
+        tutorials: "tutorials",
+        hasUnsavedChanges: "firebase/hasUnsavedChanges"
+      }),
 
       editableTabs(): Category[] {
         return Object.values(this.categories);
@@ -74,10 +83,21 @@
     },
     methods: {
       ...mapActions({
+        saveChangesToDb: "firebase/saveChangesToDb",
+        fetchFromFirebase: "firebase/fetchFromFirebase",
         fetchPlaylists: "youtube/fetchPlaylists",
         createCategory: "createCategory",
         removeCategory: "removeCategory"
       }),
+
+      async saveChanges() {
+        try {
+          await this.saveChangesToDb();
+        } catch (err) {
+          console.error("Could not save to db: ", err);
+        }
+      },
+
       async fetchNewPlaylists() {
         this.loading = true;
 
@@ -112,6 +132,12 @@
         this.editableTabsValue = activeName;
         this.removeCategory(targetName);
       }
+    },
+    async created() {
+      this.loading = true;
+      await this.fetchFromFirebase();
+
+      this.loading = false;
     }
   });
 </script>

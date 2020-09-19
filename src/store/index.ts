@@ -1,5 +1,5 @@
 import Vue from "vue";
-import Vuex, { Commit } from "vuex";
+import Vuex from "vuex";
 
 import firebaseModule from "./firebaseModule";
 import youtubeModule from "./youtubeModule";
@@ -10,37 +10,12 @@ import {
   TutorialsDictionary,
   CategoriesDictionary,
   Category,
-  Tutorial,
   PlaylistTutorial,
 } from "./types";
 import socialMedia from "./socialMedia";
+import { getTutorialReference, recordModif } from "./utils";
 
 Vue.use(Vuex);
-
-// Get a tutorial's reference having tutorialId whether it is inside the yt module or the firebase module
-function getTutorialReference(state: AppStoreState, tutorialId: string) {
-  return (state.youtube?.tutorials[tutorialId] ||
-    state.firebase?.tutorials[tutorialId]) as Tutorial;
-}
-
-// Payloads that contain a tutorialId or categoryId prop usually modify that tutorial / category
-function recordModif(
-  state: AppStoreState,
-  commit: Commit,
-  payload: { tutorialId?: string; categoryId?: string }
-) {
-  if (payload.categoryId) {
-    commit("firebase/recordModifications", {
-      modifiedObj: state.categories[payload.categoryId],
-    });
-  }
-
-  if (payload.tutorialId) {
-    commit("firebase/recordModifications", {
-      modifiedObj: getTutorialReference(state, payload.tutorialId),
-    });
-  }
-}
 
 export default new Vuex.Store<AppStoreState>({
   modules: {
@@ -183,6 +158,10 @@ export default new Vuex.Store<AppStoreState>({
   },
 
   actions: {
+    // Add the categories fetched from firebase with the recently created ones
+    addFetchedCategory({ commit }, category: Category) {
+      commit("newCategory", category);
+    },
     createCategory({ commit }) {
       const category = new Category();
       commit("newCategory", category);
