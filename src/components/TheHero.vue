@@ -5,8 +5,9 @@
         <div class="hero-copy">
           <h1 class="hero-title mt-0">Welcome to Gabbitt Media!</h1>
           <p class="hero-paragraph">
-            I am a 3d artist, film maker and teacher.
-            I specialise in Blender and produce 3d graphics and animations as well as instructional videos. I am based in Ipswich, UK.
+            I am a 3d artist, film maker and teacher. I specialise in Blender
+            and produce 3d graphics and animations as well as instructional
+            videos. I am based in Ipswich, UK.
           </p>
           <div class="hero-cta">
             <a href="#the-contact">Contact Me</a>
@@ -67,36 +68,40 @@
 </template>
 
 <script lang="ts">
-  import Vue from "vue";
-  import ToggableImage from "@/components/tools/ToggableImage.vue";
+import Vue from "vue";
+import ToggableImage from "@/components/tools/ToggableImage.vue";
 
-  // eslint-disable-next-line
-  // @ts-ignore
-  import Parallax from "parallax-js/src/parallax";
+// eslint-disable-next-line
+// @ts-ignore
+import Parallax from "parallax-js/src/parallax";
 
-  export default Vue.extend({
-    components: {
-      ToggableImage
-    },
-    mounted() {
-      new Parallax(document.getElementById("parallax-scene"), null);
-    }
-  });
+export default Vue.extend({
+  components: {
+    ToggableImage,
+  },
+  mounted() {
+    new Parallax(document.getElementById("parallax-scene"), null);
+  },
+});
 </script>
 
 <style>
-  div.hero-media-container > div.hero-media-image {
-    visibility: hidden;
-    width: 538px;
-    height: 380px;
-  }
-  .parallax-hero-layer {
-    max-width: 136%;
-    width: 733px;
-    height: 749px;
-  }
+div.hero-media-container > div.hero-media-image {
+  visibility: hidden;
+  width: 538px;
+  height: 380px;
+}
+.parallax-hero-layer {
+  max-width: 136%;
+  width: 733px;
+  height: 749px;
+}
 
-  div.hero-cta > a[href="#the-contact"] {
-    color: #535fd7;
-  }
+div.hero-cta > a[href="#the-contact"] {
+  color: #535fd7;
+}
+
+body.lights-off div.hero-cta > a[href="#the-contact"] {
+  color: #fff;
+}
 </style>

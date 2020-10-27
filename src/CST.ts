@@ -75,3 +75,42 @@ export const THUMBNAIL_HEIGHT_CUT = 1 - 0.26; // (13% cut on each side)
 
 export const CATG_PREFIX = "categories";
 export const TUT_PREFIX = "tutorials";
+
+// The homepage thumbnail tutorial size relative to the screen size
+export const HOMEPAGE_THUMBNAIL = {
+  width: 640,
+  height: 480,
+  relativeWidth: 2048,
+};
+
+export const GET_SCREEN_SIZE = () => {
+  const scrWidth =
+    window.innerWidth ||
+    document.documentElement.clientWidth ||
+    document.body.clientWidth;
+
+  const scrHeight =
+    window.innerHeight ||
+    document.documentElement.clientHeight ||
+    document.body.clientHeight;
+
+  return {
+    width: scrWidth,
+    height: scrHeight,
+  };
+};
+
+export function DEBOUNCE<T>(func: (arg: T) => void, debounceTime = 100) {
+  let timer: number;
+
+  const debouncedCb = function(arg: T) {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(func, debounceTime, arg);
+  };
+
+  debouncedCb.clearTimeout = () => {
+    clearTimeout(timer);
+  };
+
+  return debouncedCb;
+}

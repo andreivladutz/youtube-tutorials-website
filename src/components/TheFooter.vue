@@ -13,7 +13,9 @@
         </div>
         <ul class="footer-links list-reset">
           <li>
-            <a href="#">Made with &#10084;&#65039; by CiboDevz</a>
+            <a href="https://cibodevz.com"
+              >Made with &#10084;&#65039; by CiboDevz</a
+            >
           </li>
         </ul>
         <ul class="footer-social-links list-reset">
